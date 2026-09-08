@@ -746,6 +746,110 @@
             </button>
           </div>
 
+          <div class="level level-7" data-level="7">
+            <!-- DOME: a band that slides as the crank turns; the slit is one panel of it -->
+            <div class="ob-dome">
+              <span class="dm-band" data-band></span>
+              <span class="dm-slit" data-slit><i class="dm-stars"></i><i class="dm-edge l"></i><i class="dm-edge r"></i></span>
+              <span class="dm-rim" data-rim></span>
+              <span class="dm-pointer"></span>
+              <span class="dm-shade"></span>
+            </div>
+            <span class="ob-shaft" data-shaft></span>
+            <div class="ob-wall">
+              <span class="ob-panels"></span>
+              <span class="ob-rail"></span>
+              <span class="ob-grain"></span>
+            </div>
+            <div class="ob-floor"><span class="ob-parquet"></span><span class="ob-rug"></span></div>
+            <span class="ob-lampglow"></span>
+            <span class="ob-starwash"></span>
+
+            <!-- LENS CABINET — the lock -->
+            <button class="obj cabinet" data-object="cabinet" type="button" aria-label="A cabinet of lens drawers">
+              <span class="cbn-body">
+                <span class="cbn-top"></span>
+                <span class="cbn-grid" data-drawers></span>
+                <span class="cbn-plate">OBJECTIVES · 1 – 12</span>
+              </span>
+              <span class="obj-tag">Lens cabinet</span>
+            </button>
+
+            <!-- BOOKSHELF (decoy) -->
+            <button class="obj obshelf" data-object="shelf" type="button" aria-label="A bookshelf">
+              <span class="shf-case"><span class="shf-row r1"></span><span class="shf-row r2"></span><span class="shf-row r3"></span></span>
+              <span class="obj-tag">Bookshelf</span>
+            </button>
+
+            <!-- TELESCOPE -->
+            <button class="obj telescope" data-object="telescope" type="button" aria-label="The telescope">
+              <span class="ts-pier"><span class="ts-base"></span></span>
+              <span class="ts-head">
+                <span class="ts-tube"><i class="ts-obj"></i><i class="ts-band b1"></i><i class="ts-band b2"></i><i class="ts-eye"></i><i class="ts-finder"></i></span>
+                <span class="ts-weight"></span>
+                <span class="ts-axis"></span>
+              </span>
+              <span class="obj-tag">Telescope</span>
+            </button>
+
+            <!-- FLOOR HATCH — the exit, dead centre on the floor -->
+            <button class="obj door hatch" data-object="door" type="button" aria-label="A floor hatch">
+              <span class="ht-frame">
+                <span class="ht-well"></span>
+                <span class="ht-lid">
+                  <span class="ht-planks"></span>
+                  <span class="ht-strap s1"></span><span class="ht-strap s2"></span>
+                  <span class="ht-ring"></span>
+                  <span class="ht-lock" data-htlock></span>
+                </span>
+              </span>
+              <span class="obj-tag">Floor hatch</span>
+            </button>
+
+            <!-- DRAFTING TABLE: chart · logbook · sextant · lamp -->
+            <div class="ob-table"><span class="tb-top"></span><span class="tb-leg l"></span><span class="tb-leg r"></span><span class="tb-brace"></span></div>
+            <button class="obj chart" data-object="chart" type="button" aria-label="A star chart">
+              <span class="ch-sheet"><span class="ch-mini" data-chartmini></span><span class="ch-pin p1"></span><span class="ch-pin p2"></span></span>
+              <span class="obj-tag">Star chart</span>
+            </button>
+            <button class="obj logbook" data-object="logbook" type="button" aria-label="The observer's logbook">
+              <span class="lg-cover"><span class="lg-spine"></span><span class="lg-label"></span><span class="lg-ribbon"></span></span>
+              <span class="obj-tag">Logbook</span>
+            </button>
+            <button class="obj sextant" data-object="sextant" type="button" aria-label="A sextant">
+              <span class="sx-arc"></span><span class="sx-arm"></span><span class="sx-scope"></span>
+              <span class="obj-tag">Sextant</span>
+            </button>
+            <div class="ob-oillamp"><span class="ol-base"></span><span class="ol-glass"></span><span class="ol-flame"></span></div>
+
+            <!-- CRANK WHEEL -->
+            <button class="obj crank" data-object="crank" type="button" aria-label="The dome crank">
+              <span class="ck-bracket"></span>
+              <span class="ck-chain"></span>
+              <span class="ck-wheel" data-wheel><i></i><i></i><i></i><i></i><b class="ck-hub"></b><b class="ck-handle"></b></span>
+              <span class="obj-tag">Dome crank</span>
+            </button>
+
+            <!-- decoys on the right -->
+            <button class="obj tallclock" data-object="clock" type="button" aria-label="A pendulum clock">
+              <span class="pc-case"><span class="pc-face"><i class="pc-h"></i><i class="pc-m"></i></span><span class="pc-glass"><i class="pc-pend"></i></span></span>
+              <span class="obj-tag">Clock</span>
+            </button>
+            <button class="obj orrery" data-object="orrery" type="button" aria-label="An orrery">
+              <span class="or-stand"></span>
+              <span class="or-arms"><i class="or-arm a1"><b></b></i><i class="or-arm a2"><b></b></i><i class="or-arm a3"><b></b></i><b class="or-sun"></b></span>
+              <span class="obj-tag">Orrery</span>
+            </button>
+            <button class="obj moonglobe" data-object="globe" type="button" aria-label="A globe of the moon">
+              <span class="mg-stand"></span><span class="mg-ball"></span><span class="mg-ring"></span>
+              <span class="obj-tag">Moon globe</span>
+            </button>
+            <button class="obj stove" data-object="stove" type="button" aria-label="A coal stove">
+              <span class="stv-body"><span class="stv-door"><i></i></span><span class="stv-top"></span></span><span class="stv-pipe"></span>
+              <span class="obj-tag">Stove</span>
+            </button>
+          </div>
+
           <canvas class="particles" id="particles" aria-hidden="true"></canvas>
           <div class="vignette"></div>
           <div class="flash" id="flash"></div>
@@ -951,6 +1055,24 @@
         </div>
         <button type="button" class="btn btn-ghost lock-submit" id="wordSubmit">THROW THE HANDLE</button>
         <p class="modal-text" id="lockText">A grid-reference lock: one letter, one number.</p>
+      </div>
+    </template>
+
+    <template id="tplCabinet">
+      <div class="chest-inspect">
+        <div class="cab-big" id="cabBig">
+          <div class="cab-top"></div>
+          <div class="cab-grid" id="cabGrid"></div>
+          <div class="cab-plate">OBJECTIVES · 1 – 12</div>
+          <div class="cab-tray" id="cabTray">
+            <div class="key brass" id="theKey" role="button" tabindex="0" aria-label="Take the key">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Velvet, and the shape where a key used to lie.</div>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">Twelve brass drawers, each engraved with a pattern of stars. Only one of them will pull.</p>
       </div>
     </template>
 

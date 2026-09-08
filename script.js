@@ -112,6 +112,26 @@
         const rgn = c.createGain(); rgn.gain.value = 0.055;
         rain.connect(hp); hp.connect(rgn); rgn.connect(out);
         [rum, lfo, clack, pulse, rain].forEach((n) => { n.start(); nodes.push(n); });
+      } else if (kind === "wind") {
+        // wind across the dome slit: filtered noise with a slow, uneven swell
+        const w = c.createBufferSource(); w.buffer = buffer(c); w.loop = true;
+        const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 420; bp.Q.value = 0.7;
+        const wg = c.createGain(); wg.gain.value = 0.16;
+        const lfo = c.createOscillator(); lfo.frequency.value = 0.09;
+        const lfoG = c.createGain(); lfoG.gain.value = 0.09;
+        const lfo2 = c.createOscillator(); lfo2.frequency.value = 0.23;
+        const lfo2G = c.createGain(); lfo2G.gain.value = 140;
+        lfo.connect(lfoG); lfoG.connect(wg.gain);
+        lfo2.connect(lfo2G); lfo2G.connect(bp.frequency);
+        w.connect(bp); bp.connect(wg); wg.connect(out);
+        // the dome's timbers, ticking as they cool
+        const tk = c.createOscillator(); tk.type = "triangle"; tk.frequency.value = 1900;
+        const tg = c.createGain(); tg.gain.value = 0.0;
+        const pulse = c.createOscillator(); pulse.type = "square"; pulse.frequency.value = 0.17;
+        const pg = c.createGain(); pg.gain.value = 0.006;
+        pulse.connect(pg); pg.connect(tg.gain);
+        tk.connect(tg); tg.connect(out);
+        [w, lfo, lfo2, tk, pulse].forEach((n) => { n.start(); nodes.push(n); });
       }
       amb = { nodes, gain: out };
     }
@@ -184,6 +204,14 @@
       hint() { tone({ freq: 880, type: "sine", dur: 0.18, vol: 0.12 }); tone({ freq: 1174, type: "sine", dur: 0.22, vol: 0.1, delay: 0.1 }); },
       reveal() { tone({ freq: 392, type: "sine", dur: 0.5, vol: 0.1 }); tone({ freq: 587, type: "sine", dur: 0.7, vol: 0.1, delay: 0.15 }); },
       whoosh() { noise({ dur: 0.5, vol: 0.12, filter: 400, slideTo: 3000, attack: 0.15 }); },
+      grind() { noise({ dur: 0.34, vol: 0.09, filter: 380, q: 3, attack: 0.04 }); tone({ freq: 70, type: "sawtooth", dur: 0.3, vol: 0.04, filter: 260 }); },
+      domeOpen() {
+        noise({ dur: 2.4, vol: 0.18, filter: 160, slideTo: 90, q: 2, attack: 0.2 });
+        tone({ freq: 52, type: "sine", dur: 2.2, vol: 0.22, slideTo: 38 });
+        tone({ freq: 1200, type: "square", dur: 0.06, vol: 0.09, delay: 1.9, filter: 3000 });
+        noise({ dur: 2.6, vol: 0.07, delay: 1.6, filter: 2200, type: "highpass", attack: 0.8 });
+      },
+      drawer() { noise({ dur: 0.36, vol: 0.12, filter: 1400, slideTo: 500, type: "bandpass", q: 2, attack: 0.05 }); tone({ freq: 480, type: "triangle", dur: 0.12, vol: 0.06, delay: 0.3 }); },
     };
   })();
 
@@ -340,6 +368,34 @@
       bearings: [152, 215, 288],
       stations: [[56, 56], [184, 56], [184, 184]],
     },
+    {
+      id: 7, name: "The Observatory", sub: "Brass · a dome · the sky",
+      clues: ["crank", "telescope", "chart", "logbook"],
+      clueTotal: 4,
+      clueText: {
+        crank: "Clue found: the slit is over the telescope. Starlight.",
+        telescope: "Clue found: a handful of stars in a shape. Remember it exactly.",
+        chart: "Clue found: the chart, and a sketch of what a lens does to a picture.",
+        logbook: "Clue found: the observer's last entry.",
+      },
+      lock: "cabinet", lockName: "The Lens Cabinet", answer: 4,
+      exitHint: {
+        locked: "A hatch in the floor, and a padlock through the hasp that has not been opened in years.",
+        half: "The drawer gave you something. It fits the hasp.",
+      },
+      hints: [
+        "The dome is shut. The crank on the right wall turns it — watch the rim marks and stop when the slit sits over the telescope.",
+        "What the eyepiece shows is on the star chart too — and engraved on one of the twelve drawers.",
+        "Read the logbook again: everything in the glass stands on its head. Turn what you saw upside down before you choose a drawer.",
+      ],
+      particles: { color: "200, 214, 255", rise: 1.2, size: 1.1 },
+      opener: "Cold up here. The lamp is nearly out and the dome is shut.",
+      intro: { line: "A stair that goes up instead of down, and a room built to look at one thing." },
+      failLine: "The oil runs out. Under the dome, nothing moves.",
+      ambience: "wind",
+      domeStart: 118,
+      drawers: [2, 7, 4, 0, 10, 5, 8, 1, 3, 11, 6, 9],
+    },
   ];
   const lvClueTotal = (lv) => lv.clueTotal || lv.clues.length;
 
@@ -392,6 +448,9 @@
     fixed: false,
     gridA: 0,
     gridN: 0,
+    wheel: 0,
+    dome: 0,
+    domeOpen: false,
     modal: null,
     busy: false,
   });
@@ -495,7 +554,7 @@
     stage.style.marginTop = hud + "px";
     particles.resize(w, h);
   }
-  window.addEventListener("resize", () => { if (state.screen === "room") fitStage(); });
+  window.addEventListener("resize", () => { if (state.screen === "room") { fitStage(); if (level().id === 7) syncDome(); } });
   window.addEventListener("orientationchange", () => setTimeout(fitStage, 250));
 
   // ---------------------------------------------------------------- particles
@@ -1038,6 +1097,88 @@
         });
       },
     },
+    // ---------------- room 7 ----------------
+    7: {
+      crank() {
+        markInvestigated("crank");
+        openCrank();
+      },
+      telescope() {
+        markInvestigated("telescope");
+        openEyepiece();
+      },
+      chart() {
+        markInvestigated("chart");
+        openModal("chart", "The Star Chart", (body) => {
+          const sheet = document.createElement("div");
+          sheet.className = "chart-big";
+          sheet.innerHTML = '<div class="ch-title">FIGURES OF THE NORTHERN SKY · FOR CHECKING THE GLASS</div><div class="ch-grid" id="chGrid"></div><div class="ch-optic">' + OPTIC_SVG + '<span>the tube, in section</span></div>';
+          body.appendChild(sheet);
+          renderChart(sheet.querySelector("#chGrid"));
+          body.appendChild(p("Twelve figures the old man used to test the glass by, inked and named. In the corner he has sketched the telescope itself in section — the lens, and the light going through it."));
+          body.appendChild(p("An arrow goes into the lens one way, and comes out the other side… look at the sketch.", "modal-clue"));
+          discover("chart");
+        });
+      },
+      logbook() {
+        markInvestigated("logbook");
+        openModal("logbook", "The Logbook", (body) => {
+          body.appendChild(zoomClone("logbook", "is-openbook"));
+          body.appendChild(p("Ruled pages, one line a night, most of them <em>cloud</em>. The last entry is in a firmer hand:"));
+          body.appendChild(p("“Clear at last. Found her again above the slit and drew her in the drawer book — then took the wrong drawer twice, like a first-year. Three years, and I still forget that <b>everything in the glass stands on its head</b>.”", "modal-clue"));
+          discover("logbook");
+        });
+      },
+      // --- decoys ---------------------------------------------------------
+      shelf() {
+        markInvestigated("shelf");
+        openModal("shelf", "The Bookshelf", (body) => {
+          body.appendChild(zoomClone("shelf"));
+          body.appendChild(p("Ephemerides, three shelves of them, a century of tables of where things would be. You pull a few. Numbers, all of it, none of them tonight's."));
+          body.appendChild(p("Nothing hidden behind them, either. You check.", "modal-dud"));
+        });
+      },
+      sextant() {
+        markInvestigated("sextant");
+        openModal("sextant", "The Sextant", (body) => {
+          body.appendChild(zoomClone("sextant"));
+          body.appendChild(p("Brass, with a bone handle worn pale. The arm reads whatever it last read. You could take a height with it, if you were at sea and it was noon."));
+          body.appendChild(p("It is not noon, and you are not at sea.", "modal-dud"));
+        });
+      },
+      clock() {
+        markInvestigated("clock");
+        openModal("clock", "The Clock", (body) => {
+          body.appendChild(zoomClone("clock"));
+          body.appendChild(p("A tall case clock with a painted moon in the arch of the dial. The pendulum still swings — somebody wound it, and not so long ago."));
+          body.appendChild(p("It keeps time. Only that.", "modal-dud"));
+        });
+      },
+      orrery() {
+        markInvestigated("orrery");
+        openModal("orrery", "The Orrery", (body) => {
+          body.appendChild(zoomClone("orrery"));
+          body.appendChild(p("Brass planets on brass arms round a brass sun. Turn the little handle and they go round, each at its own pace, the small ones hurrying."));
+          body.appendChild(p("Beautiful. It tells you nothing about tonight.", "modal-dud"));
+        });
+      },
+      globe() {
+        markInvestigated("globe");
+        openModal("globe", "The Moon Globe", (body) => {
+          body.appendChild(zoomClone("globe"));
+          body.appendChild(p("The moon on a stand, every sea and crater lettered in a tiny hand. Half of it is blank — the side nobody had seen when it was made."));
+          body.appendChild(p("Nothing on it points anywhere.", "modal-dud"));
+        });
+      },
+      stove() {
+        markInvestigated("stove");
+        openModal("stove", "The Stove", (body) => {
+          body.appendChild(zoomClone("stove"));
+          body.appendChild(p("A squat iron stove, long cold. You open the door out of habit. Ash, and a burnt corner of paper with nothing left on it."));
+          body.appendChild(p("Cold. Whoever was here let it go out.", "modal-dud"));
+        });
+      },
+    },
   };
 
   // ---------------------------------------------------------------- locks
@@ -1051,6 +1192,7 @@
       else if (lv.lock === "suitcase") buildCase(body);
       else if (lv.lock === "padlock") buildPadlock(body);
       else if (lv.lock === "gridsafe") buildBankSafe(body);
+      else if (lv.lock === "cabinet") buildCabinet(body);
       else buildValves(body);
     });
   }
@@ -1455,6 +1597,196 @@
     });
   }
 
+  /* ---------- room 7: the sky ---------- */
+  // twelve figures, drawn on a 100×100 field. 8 is 4 turned on its head — the trap.
+  const SKY = [
+    { name: "The Ladle",   s: [[14,32],[34,36],[54,42],[68,58],[86,52],[82,78],[60,80]],       e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,3]] },
+    { name: "The Crown",   s: [[12,72],[28,34],[46,62],[62,28],[78,60],[90,32]],               e: [[0,1],[1,2],[2,3],[3,4],[4,5]] },
+    { name: "The Arrow",   s: [[12,52],[38,52],[64,52],[88,52],[72,34],[72,70]],               e: [[0,1],[1,2],[2,3],[3,4],[3,5]] },
+    { name: "The Serpent", s: [[10,80],[28,58],[44,70],[60,44],[76,56],[90,26]],               e: [[0,1],[1,2],[2,3],[3,4],[4,5]] },
+    { name: "The Heron",   s: [[18,78],[34,58],[50,62],[62,40],[80,30],[86,14],[70,20]],       e: [[0,1],[1,2],[2,3],[3,4],[4,5],[4,6]] },
+    { name: "The Kite",    s: [[50,10],[74,38],[50,60],[26,38],[42,80],[58,92]],               e: [[0,1],[1,2],[2,3],[3,0],[2,4],[4,5]] },
+    { name: "The Anchor",  s: [[50,12],[50,40],[50,70],[24,60],[76,60],[36,84],[64,84]],       e: [[0,1],[1,2],[3,5],[5,2],[2,6],[6,4]] },
+    { name: "The Scales",  s: [[50,14],[50,50],[20,40],[80,40],[12,64],[28,64],[72,64],[88,64]], e: [[0,1],[0,2],[0,3],[2,4],[2,5],[3,6],[3,7]] },
+    { name: "The Diver",   s: [[82,22],[66,42],[50,38],[38,60],[20,70],[14,86],[30,80]],       e: [[0,1],[1,2],[2,3],[3,4],[4,5],[4,6]] },
+    { name: "The Fish",    s: [[10,50],[30,30],[56,32],[76,50],[56,68],[30,70],[92,32],[92,68]], e: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[3,6],[3,7]] },
+    { name: "The Twins",   s: [[24,14],[24,50],[24,86],[76,14],[76,50],[76,86]],               e: [[0,1],[1,2],[3,4],[4,5],[1,4]] },
+    { name: "The Plough",  s: [[10,30],[30,26],[50,30],[68,42],[80,64],[92,80],[62,66]],       e: [[0,1],[1,2],[2,3],[3,4],[4,5],[3,6]] },
+  ];
+  function skySVG(pat, opts = {}) {
+    const { inverted = false, cls = "", field = false } = opts;
+    const pts = pat.s.map(([x, y]) => (inverted ? [100 - x, 100 - y] : [x, y]));
+    let out = `<svg class="skyfig ${cls}" viewBox="0 0 100 100" aria-hidden="true">`;
+    if (field) {
+      // a scatter of faint background stars, the same every time
+      let seed = 7;
+      const rand = () => { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; };
+      for (let i = 0; i < 34; i++) out += `<circle class="bg" cx="${(rand() * 100).toFixed(1)}" cy="${(rand() * 100).toFixed(1)}" r="${(0.35 + rand() * 0.6).toFixed(2)}"/>`;
+    }
+    pat.e.forEach(([a, b]) => { out += `<line x1="${pts[a][0]}" y1="${pts[a][1]}" x2="${pts[b][0]}" y2="${pts[b][1]}"/>`; });
+    pts.forEach(([x, y], i) => { out += `<circle cx="${x}" cy="${y}" r="${i === 0 ? 3.1 : 2.1 + ((i * 5) % 3) * 0.35}"/>`; });
+    return out + "</svg>";
+  }
+  function renderDrawers(host, big) {
+    if (!host) return;
+    host.innerHTML = "";
+    level().drawers.forEach((skyIdx, i) => {
+      const d = document.createElement(big ? "button" : "span");
+      d.className = "cab-dr";
+      d.dataset.dr = i;
+      if (big) { d.type = "button"; d.setAttribute("aria-label", "Drawer " + (i + 1)); }
+      d.innerHTML = `<span class="cab-face">${skySVG(SKY[skyIdx], { cls: "etched" })}</span><span class="cab-knob"></span><span class="cab-no">${i + 1}</span>`;
+      host.appendChild(d);
+    });
+  }
+  function renderChart(host) {
+    if (!host) return;
+    host.innerHTML = "";
+    SKY.forEach((pat) => {
+      const c = document.createElement("span");
+      c.className = "ch-fig";
+      c.innerHTML = skySVG(pat, { cls: "inked" }) + `<b>${pat.name}</b>`;
+      host.appendChild(c);
+    });
+  }
+  const OPTIC_SVG = `<svg class="optic" viewBox="0 0 220 70" aria-hidden="true">
+    <ellipse cx="110" cy="35" rx="6" ry="26" class="lens"/>
+    <path d="M28 48 L28 14 M22 22 L28 14 L34 22" class="obj"/>
+    <path d="M192 22 L192 56 M186 48 L192 56 L198 48" class="obj"/>
+    <path d="M28 14 L110 14 L192 56 M28 48 L110 48 L192 22 M28 14 L192 56 M28 48 L192 22" class="ray"/>
+    <path d="M40 60 h140" class="base"/>
+  </svg>`;
+
+  // ---- the dome and the crank
+  const DOME_TOL = 6;
+  const domeAngle = () => ((level().domeStart + state.wheel * 0.35) % 360 + 360) % 360;
+  function syncDome() {
+    const lv = levelEl();
+    if (!lv || level().id !== 7) return;
+    const { w } = stageSize();
+    const dome = state.domeOpen ? 0 : domeAngle();
+    state.dome = dome;
+    // the dome is unrolled across the stage: the band is W wide for 360°, so the slit is always in view
+    let off = (-dome / 360) * w;
+    off = ((off + w / 2) % w + w) % w - w / 2;
+    lv.style.setProperty("--dx", off.toFixed(1) + "px");
+    lv.style.setProperty("--slit", (w / 2 + off).toFixed(1) + "px");
+    lv.style.setProperty("--wheel", state.wheel.toFixed(1) + "deg");
+    document.querySelectorAll(".ck-wheel").forEach((el) => el.style.setProperty("--wheel", state.wheel.toFixed(1) + "deg"));
+    const rim = $("ckRim");
+    if (rim) {
+      let d = dome; if (d > 180) d -= 360;   // signed distance to the index, in degrees
+      rim.style.setProperty("--d", d.toFixed(1));
+    }
+    const rd = $("ckRead");
+    if (rd) rd.textContent = state.domeOpen ? "OPEN" : String(Math.round(dome)).padStart(3, "0") + "°";
+  }
+  function turnWheel(delta) {
+    if (state.domeOpen || state.busy) return;
+    state.wheel += delta;
+    syncDome();
+    const d = state.dome > 180 ? state.dome - 360 : state.dome;
+    if (Math.abs(d) <= DOME_TOL) openDome();
+  }
+  async function openDome() {
+    state.domeOpen = true;
+    state.busy = true;
+    state.attempts++;
+    sfx.domeOpen();
+    syncDome();
+    const lv = levelEl();
+    lv.classList.add("is-opening");
+    const note = $("ckNote");
+    if (note) note.textContent = "The pawl drops into its notch. Above you, something heavy starts to slide.";
+    await wait(1900);
+    lv.classList.add("is-open");
+    discover("crank");
+    toast("The slit finds the sky. Starlight comes down the tube.", 3800);
+    if (note) note.textContent = "The slit is over the telescope. Leave the wheel now.";
+    await wait(700);
+    state.busy = false;
+  }
+  function openCrank() {
+    openModal("crank", "The Dome Crank", (body) => {
+      const z = zoomClone("crank", null, true);
+      body.appendChild(z);
+      const wheel = z.querySelector(".ck-wheel");
+      const rim = document.createElement("div");
+      rim.className = "ck-rimwin";
+      rim.innerHTML = '<span class="ck-rim" id="ckRim"><i class="ck-ticks"></i><i class="ck-notch"></i></span><span class="ck-index"></span><span class="ck-read" id="ckRead">---</span>';
+      body.appendChild(rim);
+      const bar = document.createElement("div");
+      bar.className = "scope-bar";
+      bar.innerHTML = '<button type="button" class="btn btn-ghost" id="ckL" aria-label="Turn the wheel left">◀ TURN</button>' +
+        '<span class="sc-stn">DOME</span>' +
+        '<button type="button" class="btn btn-ghost" id="ckR" aria-label="Turn the wheel right">TURN ▶</button>';
+      body.appendChild(bar);
+      body.appendChild(p(state.domeOpen
+        ? "The wheel is pawled off. The slit sits where the tube is pointing and the cold is coming straight down it."
+        : "An iron wheel on a bracket, a chain running up into the dark. Turn it and the whole dome grinds round on its rail. The little window above the wheel shows the rim passing — and a pointer that does not move."));
+      const note = p("", "modal-clue"); note.id = "ckNote"; body.appendChild(note);
+      let dragging = false, last = 0;
+      const ang = (e) => { const r = wheel.getBoundingClientRect(); return Math.atan2(e.clientY - (r.top + r.height / 2), e.clientX - (r.left + r.width / 2)) * 180 / Math.PI; };
+      wheel.addEventListener("pointerdown", (e) => { if (state.domeOpen) return; dragging = true; last = ang(e); wheel.setPointerCapture(e.pointerId); e.preventDefault(); });
+      wheel.addEventListener("pointermove", (e) => {
+        if (!dragging) return;
+        const a = ang(e); let d = a - last; if (d > 180) d -= 360; if (d < -180) d += 360; last = a;
+        if (Math.abs(d) > 0.4) { turnWheel(d); if (Math.random() < 0.08) sfx.grind(); }
+      });
+      const stop = () => { dragging = false; };
+      wheel.addEventListener("pointerup", stop); wheel.addEventListener("pointercancel", stop);
+      $("ckL").addEventListener("click", () => { sfx.grind(); turnWheel(-14); });
+      $("ckR").addEventListener("click", () => { sfx.grind(); turnWheel(14); });
+      syncDome();
+    });
+  }
+
+  // ---- the eyepiece
+  function openEyepiece() {
+    openModal("telescope", "The Eyepiece", (body) => {
+      const eye = document.createElement("div");
+      eye.className = "eyepiece" + (state.domeOpen ? " is-sky" : "");
+      eye.innerHTML = state.domeOpen
+        ? skySVG(SKY[level().answer], { inverted: true, cls: "seen", field: true }) + '<span class="ep-reticle"></span><span class="ep-glass"></span>'
+        : '<span class="ep-dark"></span><span class="ep-reticle"></span><span class="ep-glass"></span>';
+      body.appendChild(eye);
+      if (!state.domeOpen) {
+        body.appendChild(p("You put your eye to the brass. Black — the painted inside of the dome, a foot from the objective. The tube is pointing at a closed roof."));
+        body.appendChild(p("Nothing to see until the dome is open.", "modal-dud"));
+        return;
+      }
+      body.appendChild(p("Cold on your eye. A handful of stars, very far away, standing in a shape — and the rest of the sky black around them."));
+      body.appendChild(p("Remember the shape exactly as the glass shows it.", "modal-clue"));
+      discover("telescope");
+    });
+  }
+
+  // ---- the lens cabinet (the lock)
+  function buildCabinet(body) {
+    body.appendChild($("tplCabinet").content.cloneNode(true));
+    const grid = $("cabGrid");
+    renderDrawers(grid, true);
+    const big = $("cabBig");
+    if (state.lockOpen) {
+      big.classList.add("is-open");
+      const d = grid.querySelector(`[data-dr="${level().drawers.indexOf(level().answer)}"]`);
+      if (d) d.classList.add("is-out");
+      $("lockText").textContent = state.keyObtained ? "The drawer stands open and empty." : "One drawer stands open. Something is lying in it.";
+      if (state.keyObtained) { $("theKey").classList.add("is-taken"); $("safeEmptyText").hidden = false; }
+    }
+    grid.addEventListener("click", (e) => {
+      const d = e.target.closest(".cab-dr");
+      if (d) pullDrawer(+d.dataset.dr, d);
+    });
+    wireKey();
+  }
+  function pullDrawer(i, el) {
+    if (state.lockOpen || state.busy) return;
+    state.attempts++;
+    if (level().drawers[i] === level().answer) return solveLock();
+    lockFailed(() => { el.classList.remove("is-stuck"); void el.offsetWidth; el.classList.add("is-stuck"); });
+  }
+
   /* ---------- shared lock behaviour ---------- */
   function nudge(sel) {
     const el = document.querySelector(sel);
@@ -1474,6 +1806,7 @@
       suitcase: ["The latches hold.", "Nothing gives. The wheels spin back to zero.", "Wrong number — the case stays strapped.", "Still locked."],
       padlock: ["The shackle does not move.", "Solid. The wheels roll back to zero.", "Wrong number. The brass does not care.", "Still shut."],
       gridsafe: ["The handle will not throw.", "Nothing. The bolts stay out.", "Wrong reference — the dials spin back.", "Still locked."],
+      cabinet: ["The drawer does not budge.", "Locked. The knob turns in your hand and nothing follows it.", "Not that one. The brass does not care how sure you were.", "Still shut."],
     }[level().lock];
     const t = $("lockText");
     if (t) t.textContent = msgs[Math.min(msgs.length - 1, state.wrongAttempts - 1)] + (state.wrongAttempts >= 3 ? " The room has already told you the answer." : "");
@@ -1559,6 +1892,24 @@
       await wait(900);
       txt.textContent = "The shackle springs out of the hasp, and behind you the deadbolt slides back on its own weight.";
       toast("The padlock is off. The door will open.");
+    } else if (kind === "cabinet") {
+      const big = $("cabBig");
+      const idx = level().drawers.indexOf(level().answer);
+      const d = big.querySelector(`[data-dr="${idx}"]`);
+      txt.textContent = "The knob comes towards you, and the drawer with it…";
+      if (d) d.classList.add("is-vibrating");
+      await wait(500);
+      sfx.drawer();
+      if (d) { d.classList.remove("is-vibrating"); d.classList.add("is-out"); }
+      const room = objEl("cabinet");
+      room.classList.add("is-open");
+      const rd = room.querySelector(`[data-dr="${idx}"]`); if (rd) rd.classList.add("is-out");
+      await wait(600);
+      big.classList.add("is-open");
+      sfx.chestOpen();
+      await wait(1100);
+      txt.textContent = "Green baize, a lens in a paper sleeve, and beside it — a key. Take it.";
+      toast("The drawer is open.");
     } else {
       const wall = $("valveWall");
       txt.textContent = "Somewhere behind the wall, water starts to move…";
@@ -1750,7 +2101,7 @@
 
     const slot = $("invSlot");
     slot.innerHTML = "";
-    const tpl = { safe: "tplSafe", chest: "tplChest", pipes: "tplValves", suitcase: "tplSuitcase", gridsafe: "tplBankSafe" }[level().lock];
+    const tpl = { safe: "tplSafe", chest: "tplChest", pipes: "tplValves", suitcase: "tplSuitcase", gridsafe: "tplBankSafe", cabinet: "tplCabinet" }[level().lock];
     if (!tpl) return;
     const k = $(tpl).content.querySelector(".key, .card").cloneNode(true);
     k.removeAttribute("id"); k.removeAttribute("tabindex"); k.removeAttribute("role"); k.removeAttribute("aria-label");
@@ -1925,7 +2276,15 @@
     document.querySelectorAll("[data-announce]").forEach((el) => el.classList.remove("on"));
     document.querySelectorAll(".level").forEach((l) => l.classList.remove("is-lamp"));
     document.querySelectorAll(".obj").forEach((el) => el.classList.remove("is-taken", "is-lit", "is-live", "is-fixed", "mk1", "mk2", "mk3", "is-tripped", "has-card", "on"));
-    document.querySelectorAll(".level").forEach((l) => l.classList.remove("is-powered"));
+    document.querySelectorAll(".level").forEach((l) => l.classList.remove("is-powered", "is-opening", "is-open"));
+    document.querySelectorAll(".cab-dr").forEach((el) => el.classList.remove("is-out", "is-stuck"));
+    if (lv.id === 7) {
+      const el = document.querySelector(".level-7");
+      renderDrawers(el.querySelector("[data-drawers]"), false);
+      renderChart(el.querySelector("[data-chartmini]"));
+      state.wheel = 0;
+      syncDome();
+    }
     document.querySelectorAll(".bp-sw").forEach((el) => el.classList.remove("on"));
     document.querySelectorAll(".scope").forEach((el) => { el.style.removeProperty("--brg"); el.style.removeProperty("--sx"); el.style.removeProperty("--sy"); });
     screens.room.classList.remove("is-shaking", "is-rumbling", "is-leaving");
