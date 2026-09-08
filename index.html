@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>CAN YOU ESCAPE?</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2307070b'/%3E%3Ctext x='32' y='44' font-size='36' text-anchor='middle' fill='%23f3dc9a' font-family='Georgia'%3E%3F%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app" class="app">
+
+    <!-- ================= INTRO ================= -->
+    <section id="intro" class="screen intro is-active" aria-label="Intro">
+      <div class="intro-fog"></div>
+      <div class="intro-content">
+        <p class="intro-eyebrow">Three rooms. Five minutes each.</p>
+        <h1 class="intro-title"><span>CAN</span> <span>YOU</span> <span>ESCAPE?</span></h1>
+        <p class="intro-sub">"You have 5 minutes."</p>
+
+        <div class="level-cards" id="levelCards" role="radiogroup" aria-label="Choose a room"></div>
+
+        <button id="enterBtn" class="btn btn-primary btn-enter" type="button">
+          <span class="btn-bracket">[</span> <span id="enterLabel">ENTER THE ROOM</span> <span class="btn-bracket">]</span>
+        </button>
+        <p class="intro-hint">Explore. Inspect everything. Find the way out.</p>
+      </div>
+      <button id="introSoundBtn" class="sound-toggle" type="button" aria-pressed="true" title="Toggle sound">🔊 SOUND ON</button>
+      <button id="resetProgress" class="reset-progress" type="button" title="Clear saved progress">reset progress</button>
+    </section>
+
+    <!-- ================= ROOM ================= -->
+    <section id="room" class="screen room" aria-label="The room" hidden>
+      <div class="hud">
+        <div class="hud-left">
+          <div class="timer" id="timer" aria-live="polite">
+            <svg class="timer-ring" viewBox="0 0 44 44" aria-hidden="true">
+              <circle class="timer-ring-bg" cx="22" cy="22" r="19"></circle>
+              <circle class="timer-ring-fg" id="timerRing" cx="22" cy="22" r="19"></circle>
+            </svg>
+            <span class="timer-text" id="timerText">05:00</span>
+          </div>
+          <div class="hud-stat">
+            <span class="hud-label" id="roomLabel">ROOM 1</span>
+            <span class="hud-value" id="cluesCount">0/4</span>
+          </div>
+        </div>
+        <div class="hud-right">
+          <div class="inventory" id="inventory" title="Inventory">
+            <span class="hud-label">KEY</span>
+            <div class="inv-slot" id="invSlot"><span class="inv-empty">—</span></div>
+          </div>
+          <button id="hintBtn" class="btn btn-ghost btn-hint" type="button">💡 HINT <span id="hintCount">3</span></button>
+          <button id="roomSoundBtn" class="sound-toggle" type="button" aria-pressed="true" title="Toggle sound">🔊</button>
+        </div>
+      </div>
+
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage" id="stage">
+
+          <!-- ==================================================== LEVEL 1 -->
+          <div class="level level-1 is-active" data-level="1">
+            <div class="wall">
+              <div class="wall-paper"></div>
+              <div class="wall-crack"></div>
+              <div class="wall-light"></div>
+            </div>
+            <div class="floor"><div class="floor-boards"></div><div class="rug"></div></div>
+            <div class="skirting"></div>
+
+            <button class="obj painting" data-object="painting" type="button" aria-label="A wall painting">
+              <span class="hook"></span>
+              <span class="frame">
+                <span class="canvas">
+                  <span class="sky"></span><span class="stars"></span><span class="moon"></span>
+                  <span class="mountain m1"></span><span class="mountain m2"></span><span class="mountain m3"></span>
+                  <span class="water"></span><span class="seven">7</span><span class="varnish"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Painting</span>
+            </button>
+
+            <button class="obj clock" data-object="clock" type="button" aria-label="An old clock">
+              <span class="clock-case">
+                <span class="clock-face">
+                  <span class="tick t12"></span><span class="tick t3"></span><span class="tick t6"></span><span class="tick t9"></span>
+                  <span class="minor"></span>
+                  <span class="num n12">12</span><span class="num n3">3</span><span class="num n6">6</span><span class="num n9">9</span>
+                  <span class="hand hour"></span><span class="hand minute"></span><span class="hand second"></span>
+                  <span class="pin"></span><span class="glass"></span>
+                </span>
+                <span class="pendulum-window"><span class="pendulum"><span class="bob"></span></span></span>
+              </span>
+              <span class="obj-tag">Clock</span>
+            </button>
+
+            <div class="desk">
+              <div class="desk-top"></div><div class="desk-front"></div>
+              <div class="desk-leg l"></div><div class="desk-leg r"></div>
+            </div>
+
+            <button class="obj note" data-object="note" type="button" aria-label="A mysterious note">
+              <span class="paper">
+                <span class="paper-lines"></span>
+                <span class="paper-text">The answer is hiding where time stopped.</span>
+                <span class="paper-fold"></span>
+              </span>
+              <span class="obj-tag">Note</span>
+            </button>
+
+            <button class="obj lamp" data-object="lamp" type="button" aria-label="A lamp">
+              <span class="lamp-glow"></span><span class="lamp-cone"></span><span class="lamp-shade"></span>
+              <span class="lamp-bulb"></span><span class="lamp-stem"></span><span class="lamp-base"></span>
+              <span class="obj-tag">Lamp</span>
+            </button>
+
+            <div class="wall-marks" data-marks aria-hidden="true"><span>_ _ : _ _</span></div>
+
+            <button class="obj safe" data-object="safe" type="button" aria-label="A locked safe">
+              <span class="safe-body">
+                <span class="safe-interior"><span class="safe-key-hint"></span></span>
+                <span class="safe-door">
+                  <span class="safe-panel">
+                    <span class="safe-display">····</span>
+                    <span class="safe-keys"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                  </span>
+                  <span class="safe-handle"></span>
+                  <span class="safe-bolt b1"></span><span class="safe-bolt b2"></span>
+                </span>
+                <span class="safe-hinge h1"></span><span class="safe-hinge h2"></span>
+              </span>
+              <span class="safe-feet"></span>
+              <span class="obj-tag">Safe</span>
+            </button>
+
+            <button class="obj door" data-object="door" type="button" aria-label="The exit door">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="door-panel p1"></span><span class="door-panel p2"></span><span class="door-panel p3"></span>
+                  <span class="door-handle"></span><span class="door-keyhole"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Exit</span>
+            </button>
+          </div>
+
+          <!-- ==================================================== LEVEL 2 -->
+          <div class="level level-2" data-level="2">
+            <div class="study-wall">
+              <div class="panelling"></div>
+              <div class="wain"></div>
+              <div class="fire-wash"></div>
+            </div>
+            <div class="study-floor"><div class="parquet"></div><div class="persian-rug"></div></div>
+
+            <!-- BOOKSHELF -->
+            <button class="obj bookshelf" data-object="bookshelf" type="button" aria-label="A bookshelf">
+              <span class="shelf-case">
+                <span class="shelf-row r1">
+                  <i class="bk c-crimson" data-colour="red" data-letter="M"><b>M</b></i>
+                  <i class="bk c-olive" data-colour="olive" data-letter="A"><b>A</b></i>
+                  <i class="bk c-orange" data-colour="orange" data-letter="O"><b>O</b></i>
+                  <i class="bk c-navy" data-colour="navy" data-letter="X"><b>X</b></i>
+                </span>
+                <span class="shelf-board b1"></span>
+                <span class="shelf-row r2">
+                  <i class="bk c-gold" data-colour="yellow" data-letter="T"><b>T</b></i>
+                  <i class="bk c-plum" data-colour="plum" data-letter="S"><b>S</b></i>
+                  <i class="bk c-ivory" data-colour="white" data-letter="H"><b>H</b></i>
+                  <i class="bk c-brown" data-colour="brown" data-letter="R"><b>R</b></i>
+                </span>
+                <span class="shelf-board b2"></span>
+                <span class="shelf-row r3">
+                  <i class="bk c-teal lean"><b>·</b></i>
+                  <i class="bk c-brown"><b>·</b></i>
+                  <i class="bk c-plum"><b>·</b></i>
+                  <span class="shelf-gap"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Bookshelf</span>
+            </button>
+
+            <!-- FIREPLACE -->
+            <button class="obj fireplace" data-object="fireplace" type="button" aria-label="A fireplace">
+              <span class="mantel"></span>
+              <span class="hearth">
+                <span class="bricks"></span>
+                <span class="fire-box">
+                  <span class="log l1"></span><span class="log l2"></span>
+                  <span class="flame f1"></span><span class="flame f2"></span><span class="flame f3"></span>
+                  <span class="embers"></span>
+                </span>
+              </span>
+              <span class="hearth-glow"></span>
+              <span class="obj-tag">Fireplace</span>
+            </button>
+
+            <!-- WRITING TABLE + TYPEWRITER -->
+            <div class="writing-table">
+              <div class="wt-top"></div><div class="wt-apron"></div>
+              <div class="wt-leg l"></div><div class="wt-leg r"></div>
+            </div>
+
+            <button class="obj typewriter" data-object="typewriter" type="button" aria-label="A typewriter">
+              <span class="tw-page"><span class="tw-text">Follow the colours of the fire.</span></span>
+              <span class="tw-roller"></span>
+              <span class="tw-body">
+                <span class="tw-keys"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                <span class="tw-bar"></span>
+              </span>
+              <span class="obj-tag">Typewriter</span>
+            </button>
+
+            <!-- GLOBE -->
+            <button class="obj globe" data-object="globe" type="button" aria-label="A globe">
+              <span class="globe-ball">
+                <span class="land a"></span><span class="land b"></span><span class="land c"></span>
+                <span class="meridian"></span><span class="globe-shine"></span>
+              </span>
+              <span class="globe-ring"></span>
+              <span class="globe-stand"></span>
+              <span class="obj-tag">Globe</span>
+            </button>
+
+            <!-- CHEST -->
+            <button class="obj chest" data-object="chest" type="button" aria-label="A locked chest">
+              <span class="chest-body">
+                <span class="chest-inside"></span>
+                <span class="chest-lid"><span class="band bl"></span><span class="band br"></span><span class="lid-shine"></span></span>
+                <span class="band bl"></span><span class="band br"></span>
+                <span class="chest-lock"><i></i><i></i><i></i><i></i></span>
+              </span>
+              <span class="obj-tag">Chest</span>
+            </button>
+
+            <!-- EXIT DOOR (study) -->
+            <button class="obj door study-door" data-object="door" type="button" aria-label="The exit door">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="door-panel p1"></span><span class="door-panel p2"></span><span class="door-panel p3"></span>
+                  <span class="door-handle"></span><span class="door-keyhole"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Exit</span>
+            </button>
+          </div>
+
+          <!-- ==================================================== LEVEL 3 -->
+          <div class="level level-3" data-level="3">
+            <div class="cellar-wall">
+              <div class="stones"></div>
+              <div class="damp"></div>
+              <div class="arch"></div>
+            </div>
+            <div class="cellar-floor"><div class="flags"></div><div class="puddle"></div></div>
+            <div class="drips" aria-hidden="true"><i></i><i></i><i></i></div>
+            <div class="dark-veil" data-veil></div>
+
+            <!-- LANTERN -->
+            <button class="obj lantern" data-object="lantern" type="button" aria-label="A lantern">
+              <span class="lantern-glow"></span>
+              <span class="lantern-hook"></span>
+              <span class="lantern-cage">
+                <span class="lan-top"></span>
+                <span class="lan-glass"><span class="lan-flame"></span></span>
+                <span class="lan-bar b1"></span><span class="lan-bar b2"></span>
+                <span class="lan-base"></span>
+              </span>
+              <span class="obj-tag">Lantern</span>
+            </button>
+
+            <!-- WINE RACK -->
+            <button class="obj winerack" data-object="winerack" type="button" aria-label="A wine rack">
+              <span class="rack-case">
+                <span class="rack-x x1"></span><span class="rack-x x2"></span><span class="rack-x x3"></span>
+                <span class="bottle w-green" style="--i:0"><i class="cork"></i><i class="wax"></i><i class="label">1911<b>green</b></i></span>
+                <span class="bottle w-crimson" style="--i:1"><i class="cork"></i><i class="wax"></i><i class="label">1923<b>crimson</b></i></span>
+                <span class="bottle w-blue" style="--i:2"><i class="cork"></i><i class="wax"></i><i class="label">1938<b>blue</b></i></span>
+                <span class="bottle w-amber" style="--i:3"><i class="cork"></i><i class="wax"></i><i class="label">1952<b>amber</b></i></span>
+                <span class="rack-empty"></span>
+              </span>
+              <span class="obj-tag">Wine rack</span>
+            </button>
+
+            <!-- BARREL + CHALK -->
+            <button class="obj barrel" data-object="barrel" type="button" aria-label="A barrel with chalk writing">
+              <span class="barrel-body">
+                <span class="stave s1"></span><span class="stave s2"></span><span class="stave s3"></span>
+                <span class="hoop h1"></span><span class="hoop h2"></span>
+                <span class="chalk">as they<br>were laid<br>down</span>
+              </span>
+              <span class="barrel-top"></span>
+              <span class="obj-tag">Barrel</span>
+            </button>
+
+            <!-- PIPE WALL -->
+            <button class="obj pipes" data-object="pipes" type="button" aria-label="A wall of pipes and valves">
+              <span class="pipe-plate">
+                <span class="pipe p1"></span><span class="pipe p2"></span><span class="pipe-cross"></span>
+                <span class="valve v-green"><i></i></span>
+                <span class="valve v-crimson"><i></i></span>
+                <span class="valve v-blue"><i></i></span>
+                <span class="valve v-amber"><i></i></span>
+                <span class="gauge"><i></i></span>
+              </span>
+              <span class="obj-tag">Valves</span>
+            </button>
+
+            <!-- IRON GATE -->
+            <button class="obj door gate" data-object="door" type="button" aria-label="The iron gate">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="bar b1"></span><span class="bar b2"></span><span class="bar b3"></span><span class="bar b4"></span>
+                  <span class="rail r1"></span><span class="rail r2"></span>
+                  <span class="door-keyhole"></span>
+                  <span class="padlock"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Gate</span>
+            </button>
+          </div>
+
+          <!-- ==================================================== LEVEL 4 -->
+          <div class="level level-4" data-level="4">
+            <!-- shell -->
+            <div class="tr-ceiling">
+              <span class="tr-vent"></span>
+              <span class="tr-ribs"></span>
+            </div>
+            <div class="tr-wall">
+              <span class="tr-panels"></span>
+              <span class="tr-inlay"></span>
+              <span class="tr-rail"></span>
+              <span class="tr-wash"></span>
+            </div>
+            <div class="tr-floor"><span class="tr-carpet"></span><span class="tr-runner"></span></div>
+            <div class="lightning" data-lightning></div>
+
+            <!-- luggage rack + suitcase -->
+            <div class="rack">
+              <span class="rack-bar"></span><span class="rack-mesh"></span>
+              <span class="rack-brace r1"></span><span class="rack-brace r2"></span><span class="rack-brace r3"></span>
+              <span class="rack-bag"></span>
+            </div>
+
+            <!-- overhead lamps -->
+            <button class="obj tlamp l-left" data-object="lamp" type="button" aria-label="An overhead lamp">
+              <span class="tl-stem"></span>
+              <span class="tl-shade"></span>
+              <span class="tl-bulb"></span>
+              <span class="tl-cone"></span>
+              <span class="tl-glow"></span>
+              <span class="tl-plate"><i class="sym sym-dot"></i><i class="sym-n">3</i></span>
+              <span class="obj-tag">Lamp</span>
+            </button>
+            <div class="tlamp l-right is-decor" aria-hidden="true">
+              <span class="tl-stem"></span><span class="tl-shade"></span><span class="tl-bulb"></span><span class="tl-cone"></span><span class="tl-glow"></span>
+            </div>
+
+            <!-- windows -->
+            <button class="obj twindow w-a" data-object="window" type="button" aria-label="A rain-streaked window">
+              <span class="win-scene">
+                <span class="sky"></span>
+                <span class="hills far"></span>
+                <span class="hills mid"></span>
+                <span class="poles"></span>
+                <span class="hills near"></span>
+              </span>
+              <span class="win-rain"><i></i><i></i></span>
+              <span class="win-reflect"></span>
+              <span class="win-frame"></span>
+              <span class="win-plate"><i class="sym sym-square"></i><i class="sym-n">1</i></span>
+              <span class="obj-tag">Window</span>
+            </button>
+            <div class="twindow w-b is-decor" aria-hidden="true">
+              <span class="win-scene">
+                <span class="sky"></span><span class="hills far"></span><span class="hills mid"></span><span class="poles"></span><span class="hills near"></span>
+              </span>
+              <span class="win-rain"><i></i><i></i></span>
+              <span class="win-reflect"></span>
+              <span class="win-frame"></span>
+            </div>
+
+            <!-- banquette seat -->
+            <button class="obj seat" data-object="seat" type="button" aria-label="A velvet bench seat">
+              <span class="seat-back">
+                <span class="tuft t1"></span><span class="tuft t2"></span><span class="tuft t3"></span>
+                <span class="tuft t4"></span><span class="tuft t5"></span><span class="tuft t6"></span>
+              </span>
+              <span class="seat-cushion"><span class="seam"></span></span>
+              <span class="seat-arm"></span>
+              <span class="seat-plate"><i class="sym sym-tri"></i><i class="sym-n">9</i></span>
+              <span class="obj-tag">Seat</span>
+            </button>
+
+            <!-- table with coffee, newspaper, ticket -->
+            <div class="tr-table">
+              <span class="tt-top"></span><span class="tt-edge"></span><span class="tt-leg"></span>
+            </div>
+            <div class="coffee" aria-hidden="true">
+              <span class="cup"></span><span class="cup-handle"></span><span class="saucer"></span><span class="steam-wisp"></span>
+            </div>
+            <button class="obj newspaper" data-object="newspaper" type="button" aria-label="A folded newspaper">
+              <span class="np-sheet">
+                <span class="np-head">THE NIGHT EXPRESS</span>
+                <span class="np-rule"></span>
+                <span class="np-lead">SERVICE TO VARDEN RESUMES</span>
+                <span class="np-cols"><i></i><i></i><i></i></span>
+              </span>
+              <span class="np-fold"></span>
+              <span class="obj-tag">Newspaper</span>
+            </button>
+            <button class="obj ticket" data-object="ticket" type="button" aria-label="An old train ticket">
+              <span class="tk-body">
+                <span class="tk-stub"></span>
+                <span class="tk-line l1">TRAIN 07</span>
+                <span class="tk-line l2">SEAT 12C</span>
+                <span class="tk-dest">V_R_E_</span>
+                <span class="tk-syms"><i class="sym sym-square"></i><i class="sym sym-tri"></i><i class="sym sym-dia"></i><i class="sym sym-dot"></i></span>
+                <span class="tk-punch p1"></span><span class="tk-punch p2"></span>
+              </span>
+              <span class="obj-tag">Ticket</span>
+            </button>
+
+            <!-- wall clock -->
+            <button class="obj train-clock" data-object="clock" type="button" aria-label="The train clock">
+              <span class="tc-case">
+                <span class="tc-face">
+                  <span class="tc-ring"></span>
+                  <span class="tc-num n12">12</span><span class="tc-num n3">3</span><span class="tc-num n6">6</span><span class="tc-num n9">9</span>
+                  <span class="tc-hand hour"></span><span class="tc-hand minute"></span>
+                  <span class="tc-pin"></span>
+                  <span class="tc-plate"><i class="sym sym-dia"></i><i class="sym-n">6</i></span>
+                  <span class="tc-glass"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Clock</span>
+            </button>
+
+            <!-- destination board -->
+            <button class="obj flapboard" data-object="board" type="button" aria-label="The destination board">
+              <span class="fb-case">
+                <span class="fb-head"><i>NIGHT EXPRESS</i><i class="fb-live">DEPARTURES</i></span>
+                <span class="fb-row"><i class="fb-name">KESTREL BAY</i><i class="fb-time">21:10</i><i class="fb-plat">3</i></span>
+                <span class="fb-row"><i class="fb-name">ALDER CROSS</i><i class="fb-time">23:55</i><i class="fb-plat">1</i></span>
+                <span class="fb-row is-target"><i class="fb-name" data-boardname>V?R?E?</i><i class="fb-time">04:40</i><i class="fb-plat">—</i></span>
+                <span class="fb-glass"></span>
+              </span>
+              <span class="obj-tag">Board</span>
+            </button>
+
+            <!-- control panel -->
+            <div class="ctrl-panel" aria-hidden="true">
+              <span class="cp-face">
+                <span class="cp-gauge"><i></i></span>
+                <span class="cp-lamp a"></span><span class="cp-lamp b"></span>
+                <span class="cp-switch s1"></span><span class="cp-switch s2"></span><span class="cp-switch s3"></span>
+                <span class="cp-label">ROUTE INTERLOCK</span>
+              </span>
+            </div>
+
+            <!-- emergency brake -->
+            <button class="obj brake" data-object="brake" type="button" aria-label="The emergency brake">
+              <span class="br-plate">
+                <span class="br-text">EMERGENCY<br>BRAKE</span>
+                <span class="br-slot"></span>
+                <span class="br-lever"><i class="br-grip"></i></span>
+                <span class="br-seal"></span>
+              </span>
+              <span class="obj-tag">Brake</span>
+            </button>
+
+            <!-- suitcase (on the rack, taken down to inspect) -->
+            <button class="obj suitcase" data-object="suitcase" type="button" aria-label="A locked suitcase">
+              <span class="sc-body">
+                <span class="sc-inside"></span>
+                <span class="sc-lid"><i class="sc-strap l"></i><i class="sc-strap r"></i><i class="sc-shine"></i></span>
+                <span class="sc-strap l"></span><span class="sc-strap r"></span>
+                <span class="sc-latch a"></span><span class="sc-latch b"></span>
+                <span class="sc-handle"></span>
+                <span class="sc-tag"></span>
+              </span>
+              <span class="obj-tag">Suitcase</span>
+            </button>
+
+            <!-- compartment door -->
+            <button class="obj door train-door" data-object="door" type="button" aria-label="The compartment door">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="td-glass"><i class="td-blind"></i></span>
+                  <span class="door-panel p3"></span>
+                  <span class="td-handle"></span>
+                  <span class="door-keyhole"></span>
+                  <span class="td-plate"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Exit</span>
+            </button>
+
+            <span class="announce" data-announce aria-hidden="true"></span>
+          </div>
+
+          <!-- ==================================================== LEVEL 5 -->
+          <div class="level level-5" data-level="5">
+            <!-- shell -->
+            <div class="st-cornice"></div>
+            <div class="st-wall">
+              <span class="damask"></span>
+              <span class="st-wain"></span>
+              <span class="st-gloom"></span>
+            </div>
+            <div class="st-floor"><span class="st-boards"></span><span class="st-rug"></span></div>
+            <div class="lamp-pool" data-pool></div>
+
+            <!-- OAK DOOR (left) -->
+            <button class="obj door oak-door" data-object="door" type="button" aria-label="The oak door">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="od-plank p1"></span><span class="od-plank p2"></span><span class="od-plank p3"></span>
+                  <span class="od-brace b1"></span><span class="od-brace b2"></span>
+                  <span class="od-stud s1"></span><span class="od-stud s2"></span><span class="od-stud s3"></span><span class="od-stud s4"></span>
+                  <span class="od-ring"></span>
+                  <span class="od-bolt"></span>
+                  <span class="door-keyhole"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Door</span>
+            </button>
+
+            <!-- BRASS PADLOCK beside the door -->
+            <button class="obj padlock" data-object="padlock" type="button" aria-label="A brass combination padlock">
+              <span class="pl-hasp"></span>
+              <span class="pl-shackle"></span>
+              <span class="pl-body">
+                <span class="pl-dials"><i>0</i><i>0</i><i>0</i><i>0</i></span>
+                <span class="pl-maker"></span>
+              </span>
+              <span class="obj-tag">Padlock</span>
+            </button>
+
+            <!-- GAS LAMP -->
+            <button class="obj gaslamp" data-object="lamp" type="button" aria-label="A gas lamp">
+              <span class="gl-glow"></span>
+              <span class="gl-bracket"></span>
+              <span class="gl-collar"></span>
+              <span class="gl-globe"><i class="gl-flame"></i></span>
+              <span class="gl-cap"></span>
+              <span class="obj-tag">Gas lamp</span>
+            </button>
+
+            <!-- decoys on the wall -->
+            <button class="obj portrait" data-object="portrait" type="button" aria-label="A portrait">
+              <span class="pt-frame"><span class="pt-canvas"><i class="pt-head"></i><i class="pt-body"></i><i class="pt-eye l"></i><i class="pt-eye r"></i><i class="pt-varnish"></i></span></span>
+              <span class="obj-tag">Portrait</span>
+            </button>
+            <button class="obj barometer" data-object="barometer" type="button" aria-label="A barometer">
+              <span class="bm-case"><span class="bm-face"><i class="bm-needle"></i><i class="bm-word">STORMY</i></span></span>
+              <span class="obj-tag">Barometer</span>
+            </button>
+
+            <!-- WINDOW (right) — tonight the glass is a mirror -->
+            <button class="obj sash" data-object="window" type="button" aria-label="The window">
+              <span class="sh-night"></span>
+              <span class="sh-mirror">
+                <span class="mr-room">
+                  <span class="mr-lamp"></span>
+                  <span class="mr-table"></span>
+                  <span class="cb in-glass"><span class="cb-grid"><span class="sq light" style="--f:0;--r:0"><i class="pc b rook"><b></b><u></u></i></span><span class="sq dark" style="--f:1;--r:0"></span><span class="sq light" style="--f:2;--r:0"></span><span class="sq dark" style="--f:3;--r:0"><i class="pc b queen"><b></b><u></u></i></span><span class="sq light" style="--f:4;--r:0"></span><span class="sq dark" style="--f:5;--r:0"></span><span class="sq light" style="--f:6;--r:0"><i class="pc b king"><b></b><u></u></i></span><span class="sq dark" style="--f:7;--r:0"></span><span class="sq dark" style="--f:0;--r:1"></span><span class="sq light" style="--f:1;--r:1"></span><span class="sq dark" style="--f:2;--r:1"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq light" style="--f:3;--r:1"></span><span class="sq dark" style="--f:4;--r:1"></span><span class="sq light" style="--f:5;--r:1"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq dark" style="--f:6;--r:1"></span><span class="sq light" style="--f:7;--r:1"><i class="pc b bishop"><b></b><u></u></i></span><span class="sq light" style="--f:0;--r:2"></span><span class="sq dark" style="--f:1;--r:2"></span><span class="sq light" style="--f:2;--r:2"></span><span class="sq dark" style="--f:3;--r:2"></span><span class="sq light" style="--f:4;--r:2"></span><span class="sq dark" style="--f:5;--r:2"></span><span class="sq light" style="--f:6;--r:2"></span><span class="sq dark" style="--f:7;--r:2"></span><span class="sq dark" style="--f:0;--r:3"></span><span class="sq light" style="--f:1;--r:3"></span><span class="sq dark" style="--f:2;--r:3"></span><span class="sq light" style="--f:3;--r:3"></span><span class="sq dark" style="--f:4;--r:3"><i class="pc w knight"><b></b><u></u></i></span><span class="sq light" style="--f:5;--r:3"></span><span class="sq dark" style="--f:6;--r:3"></span><span class="sq light" style="--f:7;--r:3"></span><span class="sq light" style="--f:0;--r:4"></span><span class="sq dark" style="--f:1;--r:4"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq light" style="--f:2;--r:4"></span><span class="sq dark" style="--f:3;--r:4"></span><span class="sq light" style="--f:4;--r:4"></span><span class="sq dark" style="--f:5;--r:4"></span><span class="sq light" style="--f:6;--r:4"></span><span class="sq dark" style="--f:7;--r:4"></span><span class="sq dark" style="--f:0;--r:5"></span><span class="sq light wiped" style="--f:1;--r:5"><i class="drag d4"></i></span><span class="sq dark" style="--f:2;--r:5"></span><span class="sq light wiped" style="--f:3;--r:5"><i class="drag d8"></i></span><span class="sq dark" style="--f:4;--r:5"></span><span class="sq light wiped" style="--f:5;--r:5"><i class="drag d7"></i></span><span class="sq dark" style="--f:6;--r:5"></span><span class="sq light wiped" style="--f:7;--r:5"><i class="drag d1"></i></span><span class="sq light" style="--f:0;--r:6"><i class="pc w pawn"><b></b><u></u></i></span><span class="sq dark" style="--f:1;--r:6"></span><span class="sq light" style="--f:2;--r:6"></span><span class="sq dark" style="--f:3;--r:6"><i class="pc w pawn"><b></b><u></u></i></span><span class="sq light" style="--f:4;--r:6"></span><span class="sq dark" style="--f:5;--r:6"><i class="pc w bishop"><b></b><u></u></i></span><span class="sq light" style="--f:6;--r:6"></span><span class="sq dark" style="--f:7;--r:6"></span><span class="sq dark" style="--f:0;--r:7"></span><span class="sq light" style="--f:1;--r:7"></span><span class="sq dark" style="--f:2;--r:7"><i class="pc w rook"><b></b><u></u></i></span><span class="sq light" style="--f:3;--r:7"></span><span class="sq dark" style="--f:4;--r:7"><i class="pc w king"><b></b><u></u></i></span><span class="sq light" style="--f:5;--r:7"></span><span class="sq dark" style="--f:6;--r:7"></span><span class="sq light" style="--f:7;--r:7"></span></span><span class="cb-files"><i>a</i><i>b</i><i>c</i><i>d</i><i>e</i><i>f</i><i>g</i><i>h</i></span><span class="cb-dust"></span></span>
+                </span>
+                <span class="mr-veil"></span>
+              </span>
+              <span class="sh-rain"><i></i><i></i></span>
+              <span class="sh-runs"><i></i><i></i><i></i></span>
+              <span class="sh-frame"><i class="sh-bar v"></i><i class="sh-bar h"></i></span>
+              <span class="sh-sill"></span>
+              <span class="obj-tag">Window</span>
+            </button>
+
+            <!-- TABLE + BOARD -->
+            <div class="oak-table">
+              <span class="ot-top"></span><span class="ot-lip"></span>
+              <span class="ot-leg l"></span><span class="ot-leg r"></span>
+              <span class="ot-rail"></span>
+            </div>
+
+            <button class="obj chessboard" data-object="chessboard" type="button" aria-label="A chessboard">
+              <span class="cb on-table"><span class="cb-grid"><span class="sq light" style="--f:0;--r:0"><i class="pc b rook"><b></b><u></u></i></span><span class="sq dark" style="--f:1;--r:0"></span><span class="sq light" style="--f:2;--r:0"></span><span class="sq dark" style="--f:3;--r:0"><i class="pc b queen"><b></b><u></u></i></span><span class="sq light" style="--f:4;--r:0"></span><span class="sq dark" style="--f:5;--r:0"></span><span class="sq light" style="--f:6;--r:0"><i class="pc b king"><b></b><u></u></i></span><span class="sq dark" style="--f:7;--r:0"></span><span class="sq dark" style="--f:0;--r:1"></span><span class="sq light" style="--f:1;--r:1"></span><span class="sq dark" style="--f:2;--r:1"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq light" style="--f:3;--r:1"></span><span class="sq dark" style="--f:4;--r:1"></span><span class="sq light" style="--f:5;--r:1"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq dark" style="--f:6;--r:1"></span><span class="sq light" style="--f:7;--r:1"><i class="pc b bishop"><b></b><u></u></i></span><span class="sq light" style="--f:0;--r:2"></span><span class="sq dark" style="--f:1;--r:2"></span><span class="sq light" style="--f:2;--r:2"></span><span class="sq dark" style="--f:3;--r:2"></span><span class="sq light" style="--f:4;--r:2"></span><span class="sq dark" style="--f:5;--r:2"></span><span class="sq light" style="--f:6;--r:2"></span><span class="sq dark" style="--f:7;--r:2"></span><span class="sq dark" style="--f:0;--r:3"></span><span class="sq light" style="--f:1;--r:3"></span><span class="sq dark" style="--f:2;--r:3"></span><span class="sq light" style="--f:3;--r:3"></span><span class="sq dark" style="--f:4;--r:3"><i class="pc w knight"><b></b><u></u></i></span><span class="sq light" style="--f:5;--r:3"></span><span class="sq dark" style="--f:6;--r:3"></span><span class="sq light" style="--f:7;--r:3"></span><span class="sq light" style="--f:0;--r:4"></span><span class="sq dark" style="--f:1;--r:4"><i class="pc b pawn"><b></b><u></u></i></span><span class="sq light" style="--f:2;--r:4"></span><span class="sq dark" style="--f:3;--r:4"></span><span class="sq light" style="--f:4;--r:4"></span><span class="sq dark" style="--f:5;--r:4"></span><span class="sq light" style="--f:6;--r:4"></span><span class="sq dark" style="--f:7;--r:4"></span><span class="sq dark" style="--f:0;--r:5"></span><span class="sq light wiped" style="--f:1;--r:5"><i class="drag d4"></i></span><span class="sq dark" style="--f:2;--r:5"></span><span class="sq light wiped" style="--f:3;--r:5"><i class="drag d8"></i></span><span class="sq dark" style="--f:4;--r:5"></span><span class="sq light wiped" style="--f:5;--r:5"><i class="drag d7"></i></span><span class="sq dark" style="--f:6;--r:5"></span><span class="sq light wiped" style="--f:7;--r:5"><i class="drag d1"></i></span><span class="sq light" style="--f:0;--r:6"><i class="pc w pawn"><b></b><u></u></i></span><span class="sq dark" style="--f:1;--r:6"></span><span class="sq light" style="--f:2;--r:6"></span><span class="sq dark" style="--f:3;--r:6"><i class="pc w pawn"><b></b><u></u></i></span><span class="sq light" style="--f:4;--r:6"></span><span class="sq dark" style="--f:5;--r:6"><i class="pc w bishop"><b></b><u></u></i></span><span class="sq light" style="--f:6;--r:6"></span><span class="sq dark" style="--f:7;--r:6"></span><span class="sq dark" style="--f:0;--r:7"></span><span class="sq light" style="--f:1;--r:7"></span><span class="sq dark" style="--f:2;--r:7"><i class="pc w rook"><b></b><u></u></i></span><span class="sq light" style="--f:3;--r:7"></span><span class="sq dark" style="--f:4;--r:7"><i class="pc w king"><b></b><u></u></i></span><span class="sq light" style="--f:5;--r:7"></span><span class="sq dark" style="--f:6;--r:7"></span><span class="sq light" style="--f:7;--r:7"></span></span><span class="cb-files"><i>a</i><i>b</i><i>c</i><i>d</i><i>e</i><i>f</i><i>g</i><i>h</i></span><span class="cb-dust"></span></span>
+              <span class="obj-tag">Chessboard</span>
+            </button>
+
+            <button class="obj dusttop" data-object="table" type="button" aria-label="The dusty table top">
+              <span class="dt-sheen"></span>
+              <span class="obj-tag">Table</span>
+            </button>
+
+            <!-- decoys on the floor / table -->
+            <button class="obj ashtray" data-object="ashtray" type="button" aria-label="An ashtray">
+              <span class="at-dish"></span><span class="at-cigar"></span><span class="at-smoke"></span>
+              <span class="obj-tag">Ashtray</span>
+            </button>
+            <button class="obj bookstack" data-object="books" type="button" aria-label="A stack of books">
+              <span class="bs-b b1"></span><span class="bs-b b2"></span><span class="bs-b b3"></span><span class="bs-b b4"></span>
+              <span class="obj-tag">Books</span>
+            </button>
+            <button class="obj wingchair" data-object="chair" type="button" aria-label="A wing chair">
+              <span class="wc-back"></span><span class="wc-wing l"></span><span class="wc-wing r"></span>
+              <span class="wc-seat"></span><span class="wc-leg l"></span><span class="wc-leg r"></span>
+              <span class="wc-coat"></span>
+              <span class="obj-tag">Chair</span>
+            </button>
+          </div>
+
+          <!-- ==================================================== LEVEL 6 -->
+          <div class="level level-6" data-level="6">
+            <div class="bk-ceiling"><span class="bk-duct"></span><span class="bk-pipe p1"></span><span class="bk-pipe p2"></span><span class="bk-strip"></span></div>
+            <div class="bk-wall">
+              <span class="concrete"></span>
+              <span class="bk-ties"></span>
+              <span class="bk-seam s1"></span><span class="bk-seam s2"></span>
+              <span class="bk-stain"></span>
+            </div>
+            <div class="bk-floor"><span class="bk-tiles"></span><span class="bk-hatch"></span></div>
+            <div class="alarm-wash" data-alarm></div>
+
+            <!-- BREAKER PANEL -->
+            <button class="obj breakers" data-object="breakers" type="button" aria-label="The breaker panel">
+              <span class="bp-box">
+                <span class="bp-label">MAINS DISTRIBUTION</span>
+                <span class="bp-rows">
+                  <i class="bp-sw" data-sw="0"><b></b><em>A1</em></i>
+                  <i class="bp-sw" data-sw="1"><b></b><em>A2</em></i>
+                  <i class="bp-sw" data-sw="2"><b></b><em>B1</em></i>
+                  <i class="bp-sw" data-sw="3"><b></b><em>B2</em></i>
+                  <i class="bp-sw" data-sw="4"><b></b><em>C1</em></i>
+                  <i class="bp-sw" data-sw="5"><b></b><em>C2</em></i>
+                </span>
+                <span class="bp-lamp"></span>
+                <span class="bp-screws"><i></i><i></i><i></i><i></i></span>
+              </span>
+              <span class="obj-tag">Breakers</span>
+            </button>
+
+            <!-- CRT BANK -->
+            <button class="obj crtbank" data-object="crt" type="button" aria-label="A bank of monitors">
+              <span class="crt c1"><span class="crt-glass"><i class="crt-line l1"></i><i class="crt-line l2"></i><i class="crt-line l3"></i><i class="crt-cur"></i></span><span class="crt-scan"></span><span class="crt-bez"></span></span>
+              <span class="crt c2"><span class="crt-glass"><i class="crt-wave"></i></span><span class="crt-scan"></span><span class="crt-bez"></span></span>
+              <span class="obj-tag">Monitors</span>
+            </button>
+
+            <!-- CONSOLE + PLOTTING SCOPE -->
+            <div class="bk-console">
+              <span class="cs-top"></span><span class="cs-face"></span>
+              <span class="cs-vent"></span><span class="cs-knobs"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="cs-leg l"></span><span class="cs-leg r"></span>
+            </div>
+
+            <button class="obj scope" data-object="scope" type="button" aria-label="The plotting scope">
+              <span class="sc-case">
+                <span class="sc-face">
+                  <span class="sc-grid"><i class="gl" style="--i:0">A</i><i class="gl" style="--i:1">B</i><i class="gl" style="--i:2">C</i><i class="gl" style="--i:3">D</i><i class="gl" style="--i:4">E</i><i class="gl" style="--i:5">F</i><i class="gl" style="--i:6">G</i><i class="gl" style="--i:7">H</i><i class="gn" style="--i:0">1</i><i class="gn" style="--i:1">2</i><i class="gn" style="--i:2">3</i><i class="gn" style="--i:3">4</i><i class="gn" style="--i:4">5</i><i class="gn" style="--i:5">6</i><i class="gn" style="--i:6">7</i><i class="gn" style="--i:7">8</i></span>
+                  <span class="sc-rings"></span>
+                  <span class="sc-cell" data-cell></span>
+                  <span class="sc-mark m1"></span><span class="sc-mark m2"></span><span class="sc-mark m3"></span>
+                  <span class="sc-line" data-line></span>
+                  <span class="sc-sweep"></span>
+                  <span class="sc-glass"></span>
+                </span>
+                <span class="sc-bezel"></span>
+                <span class="sc-read" data-read>---</span>
+              </span>
+              <span class="obj-tag">Scope</span>
+            </button>
+
+            <button class="obj dossier" data-object="dossier" type="button" aria-label="A torn dossier">
+              <span class="ds-sheet">
+                <span class="ds-stamp">SECRET</span>
+                <span class="ds-line"></span><span class="ds-line"></span><span class="ds-line short"></span>
+                <span class="ds-tear"></span>
+              </span>
+              <span class="obj-tag">Dossier</span>
+            </button>
+
+            <!-- BLAST DOOR — dead centre -->
+            <button class="obj door blastdoor" data-object="door" type="button" aria-label="The blast door">
+              <span class="door-frame">
+                <span class="door-light"></span>
+                <span class="door-leaf">
+                  <span class="bd-hazard t"></span><span class="bd-hazard b"></span>
+                  <span class="bd-plate">SECTOR 7 — AUTHORISED ENTRY ONLY</span>
+                  <span class="bd-wheel"><i></i><i></i><i></i><i></i></span>
+                  <span class="bd-ram l"></span><span class="bd-ram r"></span>
+                  <span class="bd-slot" data-slot></span>
+                  <span class="bd-rivets"></span>
+                </span>
+              </span>
+              <span class="obj-tag">Blast door</span>
+            </button>
+
+            <!-- STENCILLED CONCRETE -->
+            <button class="obj stencilwall" data-object="wall" type="button" aria-label="The concrete wall">
+              <span class="sw-face">
+                <span class="sw-stencil" data-stencil>
+                  <i>152</i><i>215</i><i>288</i>
+                </span>
+                <span class="sw-note">FIRING SOLUTION — DO NOT ERASE</span>
+              </span>
+              <span class="obj-tag">Wall</span>
+            </button>
+
+            <!-- WALL SAFE -->
+            <button class="obj banksafe" data-object="gridsafe" type="button" aria-label="A wall safe">
+              <span class="bs-body">
+                <span class="bs-inside"></span>
+                <span class="bs-door">
+                  <span class="bs-dial d1"></span><span class="bs-dial d2"></span>
+                  <span class="bs-handle"></span>
+                  <span class="bs-plate">GR-4</span>
+                </span>
+                <span class="bs-hinge h1"></span><span class="bs-hinge h2"></span>
+              </span>
+              <span class="obj-tag">Safe</span>
+            </button>
+
+            <!-- decoys -->
+            <button class="obj gaugebank" data-object="gauges" type="button" aria-label="A bank of gauges">
+              <span class="gb-plate">
+                <span class="gb-g"><i></i></span><span class="gb-g"><i></i></span><span class="gb-g"><i></i></span>
+                <span class="gb-g"><i></i></span><span class="gb-g"><i></i></span><span class="gb-g"><i></i></span>
+              </span>
+              <span class="obj-tag">Gauges</span>
+            </button>
+            <button class="obj fieldphone" data-object="phone" type="button" aria-label="A field telephone">
+              <span class="fp-box"><span class="fp-crank"></span><span class="fp-dial"></span></span>
+              <span class="fp-handset"></span><span class="fp-cord"></span>
+              <span class="obj-tag">Telephone</span>
+            </button>
+            <button class="obj helmet" data-object="helmet" type="button" aria-label="A helmet on the floor">
+              <span class="hm-shell"></span><span class="hm-brim"></span><span class="hm-strap"></span>
+              <span class="obj-tag">Helmet</span>
+            </button>
+          </div>
+
+          <canvas class="particles" id="particles" aria-hidden="true"></canvas>
+          <div class="vignette"></div>
+          <div class="flash" id="flash"></div>
+        </div>
+      </div>
+
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    </section>
+
+    <!-- ================= MODAL ================= -->
+    <div class="modal-backdrop" id="modal" hidden>
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <button class="modal-close" id="modalClose" type="button" aria-label="Close">✕</button>
+        <h2 class="modal-title" id="modalTitle">Object</h2>
+        <div class="modal-body" id="modalBody"></div>
+      </div>
+    </div>
+
+    <!-- ---------- template: level 1 safe ---------- -->
+    <template id="tplSafe">
+      <div class="safe-inspect">
+        <div class="safe-big" id="safeBig">
+          <div class="safe-big-interior">
+            <div class="key" id="theKey" role="button" tabindex="0" aria-label="Take the key">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Empty.</div>
+          </div>
+          <div class="safe-big-door" id="safeDoor">
+            <div class="keypad-panel">
+              <div class="keypad-display" id="keypadDisplay"><span class="digits" id="keypadDigits">____</span><span class="led" id="keypadLed"></span></div>
+              <div class="keypad" id="keypad">
+                <button type="button" data-key="1">1</button><button type="button" data-key="2">2</button><button type="button" data-key="3">3</button>
+                <button type="button" data-key="4">4</button><button type="button" data-key="5">5</button><button type="button" data-key="6">6</button>
+                <button type="button" data-key="7">7</button><button type="button" data-key="8">8</button><button type="button" data-key="9">9</button>
+                <button type="button" data-key="clear" class="k-clear">CLEAR</button><button type="button" data-key="0">0</button><button type="button" data-key="enter" class="k-enter">ENTER</button>
+              </div>
+            </div>
+            <div class="safe-big-handle"></div>
+            <div class="safe-big-bolts"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">A heavy steel safe. The keypad wants four digits.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 2 chest + letter lock ---------- -->
+    <template id="tplChest">
+      <div class="chest-inspect">
+        <div class="chest-big" id="chestBig">
+          <div class="chest-big-inside">
+            <div class="key brass" id="theKey" role="button" tabindex="0" aria-label="Take the key">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Empty — only old velvet.</div>
+          </div>
+          <div class="chest-big-lid" id="chestLid">
+            <span class="cb-band l"></span><span class="cb-band r"></span><span class="cb-shine"></span>
+          </div>
+          <div class="chest-big-front">
+            <span class="cb-band l"></span><span class="cb-band r"></span>
+            <div class="wordlock" id="wordlock">
+              <div class="dial" data-slot="0"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">A</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="1"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">A</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="2"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">A</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="3"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">A</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+            </div>
+            <button type="button" class="btn btn-ghost lock-submit" id="wordSubmit">TRY THE LOCK</button>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">A brass letter lock. Four dials — type the letters or use the arrows.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 3 valve wall ---------- -->
+    <template id="tplValves">
+      <div class="valve-inspect">
+        <div class="valve-wall" id="valveWall">
+          <div class="vw-plate">
+            <span class="vw-pipe a"></span><span class="vw-pipe b"></span><span class="vw-pipe c"></span>
+            <button type="button" class="bigvalve" data-valve="green"><span class="wheel"><i></i><i></i><i></i></span><span class="vtag">green</span></button>
+            <button type="button" class="bigvalve" data-valve="crimson"><span class="wheel"><i></i><i></i><i></i></span><span class="vtag">crimson</span></button>
+            <button type="button" class="bigvalve" data-valve="blue"><span class="wheel"><i></i><i></i><i></i></span><span class="vtag">blue</span></button>
+            <button type="button" class="bigvalve" data-valve="amber"><span class="wheel"><i></i><i></i><i></i></span><span class="vtag">amber</span></button>
+            <span class="steam" id="steam"></span>
+          </div>
+          <div class="vw-order" id="valveOrder"><i></i><i></i><i></i><i></i></div>
+          <div class="vw-drop">
+            <div class="key iron" id="theKey" role="button" tabindex="0" aria-label="Take the key">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>The pipes are silent now.</div>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">Four valves, four tags. Turn them in the right order and the pipes will give something up.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 4 suitcase (four rotary dials) ---------- -->
+    <template id="tplSuitcase">
+      <div class="chest-inspect">
+        <div class="case-big" id="caseBig">
+          <div class="case-big-inside">
+            <div class="case-lining"></div>
+            <div class="case-log"><span>CONDUCTOR'S LOG</span><em>The brake is interlocked with the route board. Set the true destination, then pull.</em></div>
+            <div class="key handle" id="theKey" role="button" tabindex="0" aria-label="Take the brass handle">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Only the lining and an empty strap.</div>
+          </div>
+          <div class="case-big-lid" id="caseLid"><span class="cbl-strap l"></span><span class="cbl-strap r"></span><span class="cbl-shine"></span></div>
+          <div class="case-big-front">
+            <span class="cbl-strap l"></span><span class="cbl-strap r"></span>
+            <div class="wordlock numlock" id="wordlock">
+              <div class="dial" data-slot="0"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="1"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="2"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="3"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+            </div>
+            <div class="case-latches"><span class="cl a"></span><span class="cl b"></span></div>
+            <button type="button" class="btn btn-ghost lock-submit" id="wordSubmit">TRY THE LATCHES</button>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">A calfskin case, strapped shut. Four numbered wheels between the latches.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 4 split-flap destination board ---------- -->
+    <template id="tplBoard">
+      <div class="board-inspect">
+        <div class="board-big" id="boardBig">
+          <div class="bb-head"><span>NIGHT EXPRESS</span><span class="bb-time">04:40</span></div>
+          <div class="bb-flaps" id="bbFlaps"></div>
+          <div class="bb-foot"><span class="bb-hint">PLATFORM —</span><span class="bb-status" id="bbStatus">ROUTE NOT SET</span></div>
+        </div>
+        <p class="modal-text" id="lockText">Six flaps. Three are seized in place; the rest still turn.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 4 emergency brake ---------- -->
+    <template id="tplBrake">
+      <div class="brake-inspect">
+        <div class="brake-big" id="brakeBig">
+          <div class="bg-plate">
+            <div class="bg-text">EMERGENCY BRAKE</div>
+            <div class="bg-track"><div class="bg-lever" id="bgLever"><span class="bg-grip"></span><span class="bg-arm"></span></div></div>
+            <div class="bg-sub">PULL DOWN — PENALTY FOR IMPROPER USE</div>
+            <div class="bg-socket" id="bgSocket"><span></span></div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-primary" id="brakePull">PULL THE BRAKE</button>
+        <p class="modal-text" id="lockText">A steel lever behind glass long since broken. The handle socket is empty.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 5 brass combination padlock ---------- -->
+    <template id="tplPadlock">
+      <div class="chest-inspect">
+        <div class="lock-big" id="lockBig">
+          <span class="lb-shackle"></span>
+          <span class="lb-body">
+            <span class="lb-plate">CHUBB &amp; SONS</span>
+            <div class="wordlock numlock brasslock" id="wordlock">
+              <div class="dial" data-slot="0"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="1"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="2"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="3"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+            </div>
+          </span>
+          <span class="lb-key" id="theKey" role="button" tabindex="0" aria-label="Take the padlock off the hasp" hidden></span>
+          <span class="safe-empty-text" id="safeEmptyText" hidden></span>
+        </div>
+        <button type="button" class="btn btn-ghost lock-submit" id="wordSubmit">PULL THE SHACKLE</button>
+        <p class="modal-text" id="lockText">Four brass wheels, worn smooth. It wants a number, not a key.</p>
+      </div>
+    </template>
+
+    <!-- ---------- template: level 6 wall safe (letter + number) ---------- -->
+    <template id="tplBankSafe">
+      <div class="chest-inspect">
+        <div class="gr-safe" id="grSafe">
+          <div class="gr-inside">
+            <div class="card" id="theKey" role="button" tabindex="0" aria-label="Take the key card">
+              <span class="cd-body"><i class="cd-stripe"></i><i class="cd-chip"></i><i class="cd-txt">SECTOR 7</i></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Empty. Steel shelf, nothing on it.</div>
+          </div>
+          <div class="gr-door" id="grDoor">
+            <div class="gr-panel">
+              <div class="gr-window"><span class="gr-a" data-gra>A</span><span class="gr-sep">·</span><span class="gr-n" data-grn>1</span></div>
+              <div class="gr-knobs">
+                <div class="gr-knob" data-knob="a"><button type="button" data-dir="-1" aria-label="previous letter">◀</button><span>LETTER</span><button type="button" data-dir="1" aria-label="next letter">▶</button></div>
+                <div class="gr-knob" data-knob="n"><button type="button" data-dir="-1" aria-label="lower number">◀</button><span>NUMBER</span><button type="button" data-dir="1" aria-label="higher number">▶</button></div>
+              </div>
+            </div>
+            <div class="gr-handle"></div>
+            <div class="gr-bolts"><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <button type="button" class="btn btn-ghost lock-submit" id="wordSubmit">THROW THE HANDLE</button>
+        <p class="modal-text" id="lockText">A grid-reference lock: one letter, one number.</p>
+      </div>
+    </template>
+
+    <!-- ================= HINTS ================= -->
+    <div class="modal-backdrop" id="hintModal" hidden>
+      <div class="modal modal-small" role="dialog" aria-modal="true" aria-labelledby="hintTitle">
+        <button class="modal-close" id="hintClose" type="button" aria-label="Close">✕</button>
+        <h2 class="modal-title" id="hintTitle">Hints</h2>
+        <ol class="hint-list" id="hintList"></ol>
+        <p class="hint-warning">Each hint lowers your final rating.</p>
+        <button class="btn btn-primary" id="hintReveal" type="button">Reveal next hint</button>
+      </div>
+    </div>
+
+    <!-- ================= LEVEL TRANSITION ================= -->
+    <section id="transition" class="screen transition" hidden aria-live="polite">
+      <div class="tr-content">
+        <p class="tr-done" id="trDone">ROOM 1 COMPLETE</p>
+        <p class="tr-line" id="trLine">The door wasn't the exit.</p>
+        <div class="tr-card" id="trCard">
+          <span class="tr-no" id="trNo">ROOM 2</span>
+          <span class="tr-name" id="trName">THE STUDY</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= GAME OVER ================= -->
+    <section id="gameover" class="screen end end-fail" hidden>
+      <div class="end-content">
+        <h1 class="end-title">TIME'S UP</h1>
+        <p class="end-sub" id="failSub">The room keeps its secrets… this time.</p>
+        <div class="end-buttons">
+          <button class="btn btn-primary" id="retryBtn" type="button">TRY AGAIN</button>
+          <button class="btn btn-ghost" id="failMenuBtn" type="button">ROOM SELECT</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= VICTORY ================= -->
+    <section id="victory" class="screen end end-win" hidden>
+      <div class="end-light"></div>
+      <div class="end-content">
+        <p class="intro-eyebrow" id="winEyebrow">The door swings open</p>
+        <h1 class="end-title" id="winTitle">YOU ESCAPED</h1>
+        <div class="stats">
+          <div class="stat"><span class="stat-label">Time remaining</span><span class="stat-value" id="statTime">00:00</span></div>
+          <div class="stat"><span class="stat-label">Clues discovered</span><span class="stat-value" id="statClues">0/4</span></div>
+          <div class="stat"><span class="stat-label">Lock attempts</span><span class="stat-value" id="statAttempts">0</span></div>
+          <div class="stat"><span class="stat-label">Hints used</span><span class="stat-value" id="statHints">0</span></div>
+        </div>
+        <div class="rating" id="rating">⭐⭐⭐ PERFECT ESCAPE</div>
+        <div class="end-buttons">
+          <button class="btn btn-primary" id="nextBtn" type="button">NEXT ROOM</button>
+          <button class="btn btn-ghost" id="playAgainBtn" type="button">PLAY AGAIN</button>
+        </div>
+      </div>
+    </section>
+
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
