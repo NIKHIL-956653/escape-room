@@ -149,6 +149,22 @@
         lfo.connect(lg); lg.connect(sg.gain);
         st.connect(bp); bp.connect(sg); sg.connect(out);
         [hum, air, st, lfo].forEach((n) => { n.start(); nodes.push(n); });
+      } else if (kind === "workshop") {
+        // a dozen escapements, not quite in step: two soft tick sources at slightly different rates
+        [[1.0, 1500], [0.93, 1180]].forEach(([rate, f]) => {
+          const t = c.createOscillator(); t.type = "triangle"; t.frequency.value = f;
+          const g = c.createGain(); g.gain.value = 0.0;
+          const pulse = c.createOscillator(); pulse.type = "square"; pulse.frequency.value = rate;
+          const pg = c.createGain(); pg.gain.value = 0.012;
+          pulse.connect(pg); pg.connect(g.gain);
+          t.connect(g); g.connect(out);
+          [t, pulse].forEach((n) => { n.start(); nodes.push(n); });
+        });
+        const room = c.createBufferSource(); room.buffer = buffer(c); room.loop = true;
+        const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 200;
+        const rg = c.createGain(); rg.gain.value = 0.12;
+        room.connect(lp); lp.connect(rg); rg.connect(out);
+        room.start(); nodes.push(room);
       }
       amb = { nodes, gain: out };
     }
@@ -237,6 +253,9 @@
         noise({ dur: 0.12, vol: 0.14, delay: 1.5, filter: 300, q: 2 });
       },
       radio() { [0, 0.14, 0.31].forEach((d, i) => noise({ dur: 0.08 + i * 0.03, vol: 0.05, delay: d, filter: 2400 + i * 600, type: "bandpass", q: 6 })); },
+      cuckoo() { [0, 0.34].forEach((d) => { tone({ freq: 1046, type: "sine", dur: 0.18, vol: 0.12, delay: d }); tone({ freq: 830, type: "sine", dur: 0.26, vol: 0.12, delay: d + 0.17 }); }); },
+      tock() { tone({ freq: 1800, type: "square", dur: 0.02, vol: 0.035, filter: 2600 }); noise({ dur: 0.03, vol: 0.03, filter: 3200, type: "bandpass", q: 4 }); },
+      ratchet() { [0, 0.08, 0.16, 0.24].forEach((d) => noise({ dur: 0.04, vol: 0.06, delay: d, filter: 2000, type: "bandpass", q: 5 })); },
     };
   })();
 
@@ -452,6 +471,33 @@
       ambience: "scanner",
       junkBoxes: [],
     },
+    {
+      id: 9, name: "The Clockmaker's Bench", sub: "Brass · a running clock · four empty pegs",
+      clues: ["skeleton", "geartrain", "tray"],
+      clueTotal: 3,
+      clueText: {
+        skeleton: "Clue found: the one clock still running, and its train laid open.",
+        geartrain: "Clue found: the bolt is driven by a train with four empty pegs.",
+        tray: "Clue found: ten loose wheels, each stamped with its count.",
+      },
+      lock: "geartrain", lockName: "The Gear Train", answer: [24, 12, 30, 18],
+      gears: [8, 10, 12, 14, 16, 18, 20, 24, 30, 36],
+      crankTeeth: 20,
+      freeJams: 2,
+      exitHint: (s) => "A trapdoor in the ceiling, and a bolt across it that runs down a rod to the wall. The rod goes nowhere until the train on the wall turns.",
+      exitReady: (s) => s.lockOpen,
+      exitToast: "The ladder unfolds and comes down to meet you.",
+      hints: [
+        "Eleven clocks have stopped. One has not — and its works are open to look at.",
+        "The wall train wants four wheels. The running clock shows you three, in order, from the crank end.",
+        "The fourth wheel is not in the clock. Only one wheel in the tray meets both the third wheel and the rack — try sizes near the third wheel's neighbour.",
+      ],
+      particles: { color: "255, 226, 170", rise: 0.9, size: 1.1 },
+      opener: "Everything in here ticks. Nearly everything. Five minutes.",
+      intro: { line: "A door at the top of a stair, and behind it, a room that will not stop counting." },
+      failLine: "The cuckoo comes out one last time and does not go back in.",
+      ambience: "workshop",
+    },
   ];
   const lvClueTotal = (lv) => lv.clueTotal || lv.clues.length;
 
@@ -511,6 +557,9 @@
     alarm: false,
     powerCut: false,
     junk: [],
+    pegs: [null, null, null, null],
+    held: null,
+    jams: 0,
     modal: null,
     busy: false,
   });
@@ -1364,6 +1413,79 @@
         });
       },
     },
+    // ---------------- room 9 ----------------
+    9: {
+      skeleton() {
+        markInvestigated("skeleton");
+        openModal("skeleton", "The Skeleton Clock", (body) => {
+          body.appendChild(zoomClone("skeleton", "is-close"));
+          body.appendChild(p("Under the dome, a clock with no case at all — every wheel on show, and every wheel still turning. He was working on it. It is the only thing in the room that has not stopped."));
+          body.appendChild(p("Three wheels in a row, each stamped with its count, each one biting the next.", "modal-clue"));
+          discover("skeleton");
+        });
+      },
+      tray() {
+        markInvestigated("tray");
+        discover("tray");
+        openLock();
+      },
+      clocks() {
+        markInvestigated("clocks");
+        openModal("clocks", "The Wall of Clocks", (body) => {
+          body.appendChild(zoomClone("clocks"));
+          body.appendChild(p("Eleven customers' clocks, tagged and hung in a row, every one of them stopped — at eleven different times. You read them all twice. They are the times they stopped, and nothing else."));
+          body.appendChild(p("Dead. All of them.", "modal-dud"));
+        });
+      },
+      cuckoo() {
+        markInvestigated("cuckoo");
+        openModal("cuckoo", "The Cuckoo Clock", (body) => {
+          body.appendChild(zoomClone("cuckoo"));
+          body.appendChild(p("Black Forest work, weights on chains, a little door above the dial. It runs, and it comes out to tell you about every minute you have lost."));
+          body.appendChild(p("Nothing behind the little door but the bird.", "modal-dud"));
+        });
+      },
+      watch() {
+        markInvestigated("watch");
+        openModal("watch", "The Pocket Watch", (body) => {
+          body.appendChild(zoomClone("watch"));
+          body.appendChild(p("A silver hunter, lid open. Engraved inside: <em>to be collected Tuesday</em>. Whoever's Tuesday that was, it has been and gone."));
+          body.appendChild(p("Stopped, like the others.", "modal-dud"));
+        });
+      },
+      loupe() {
+        markInvestigated("loupe");
+        openModal("loupe", "The Loupe", (body) => {
+          body.appendChild(zoomClone("loupe"));
+          body.appendChild(p("A jeweller's loupe on a bent wire. Through it, the grain of the bench looks like a landscape."));
+          body.appendChild(p("It makes small things bigger. It does not make them mean anything.", "modal-dud"));
+        });
+      },
+      oilcan() {
+        markInvestigated("oilcan");
+        openModal("oilcan", "The Oil Can", (body) => {
+          body.appendChild(zoomClone("oilcan"));
+          body.appendChild(p("A brass oiler with a long thin spout. A drop comes out on your thumb, clear and slow."));
+          body.appendChild(p("Nothing in here needs oil. It needs wheels.", "modal-dud"));
+        });
+      },
+      winder() {
+        markInvestigated("winder");
+        openModal("winder", "The Spring Winder", (body) => {
+          body.appendChild(zoomClone("winder"));
+          body.appendChild(p("A clamp and a crank for coiling mainsprings, the sort of tool that takes a finger off if you are careless."));
+          body.appendChild(p("No spring in it.", "modal-dud"));
+        });
+      },
+      drawer() {
+        markInvestigated("drawer");
+        openModal("drawer", "The Bench Drawer", (body) => {
+          body.appendChild(zoomClone("drawer"));
+          body.appendChild(p("Clock hands, hundreds of them, sorted by length into little tin compartments. Hour hands, minute hands, one long thin second hand like a needle."));
+          body.appendChild(p("Hands, but nothing for them to turn on.", "modal-dud"));
+        });
+      },
+    },
   };
 
   // ---------------------------------------------------------------- locks
@@ -1379,6 +1501,7 @@
       else if (lv.lock === "gridsafe") buildBankSafe(body);
       else if (lv.lock === "cabinet") buildCabinet(body);
       else if (lv.lock === "boxes") buildBoxes(body);
+      else if (lv.lock === "geartrain") buildGeartrain(body);
       else buildValves(body);
     });
   }
@@ -2132,6 +2255,197 @@
     if (state.wrongAttempts === 2) ambTimers.push(setTimeout(() => voice("Stop guessing. I did not leave you a guess. Go and count."), 900));
   }
 
+  /* ---------- room 9: the gear train ---------- */
+  const GT_K = 1.6;                                   // px of radius per tooth, in the close-up
+  const gtR = (teeth) => teeth * GT_K;
+  const GT_TOL = 1.5;
+  function gearHTML(teeth, cls = "") {
+    const r = gtR(teeth);
+    return `<span class="gt-gear ${cls}" style="--r:${r.toFixed(1)}px;--n:${teeth}" data-teeth="${teeth}"><i class="gt-teeth"></i><i class="gt-disc"></i><b>${teeth}</b></span>`;
+  }
+  // geometry of the wall plate: crank at 0, pegs to the right, the rack sitting above peg 4
+  function gtLayout() {
+    const lv = level();
+    const rc = gtR(lv.crankTeeth);
+    const sol = lv.answer.map(gtR);
+    const pegs = [];
+    let x = rc + sol[0]; pegs.push(x);
+    for (let i = 1; i < 4; i++) { x += sol[i - 1] + sol[i]; pegs.push(x); }
+    return { rc, pegs, rackGap: sol[3] };
+  }
+  function renderTray(host, big) {
+    if (!host) return;
+    host.innerHTML = "";
+    level().gears.forEach((t, i) => {
+      const s = document.createElement(big ? "button" : "span");
+      s.className = "gt-slot" + (state.pegs.includes(i) ? " is-empty" : "") + (state.held === i ? " is-held" : "");
+      s.dataset.gear = i;
+      s.dataset.teeth = t;
+      s.style.setProperty("--s", Math.min(1.5, 27 / gtR(t)).toFixed(3));
+      if (big) { s.type = "button"; s.setAttribute("aria-label", t + " teeth"); }
+      s.innerHTML = gearHTML(t);
+      host.appendChild(s);
+    });
+  }
+  function renderPegs(host, big) {
+    if (!host) return;
+    const { pegs } = gtLayout();
+    host.innerHTML = "";
+    pegs.forEach((x, i) => {
+      const pg = document.createElement(big ? "button" : "span");
+      pg.className = "gt-peg" + (state.pegs[i] !== null ? " is-set" : "");
+      pg.dataset.peg = i;
+      pg.style.setProperty("--x", x.toFixed(1) + "px");
+      if (big) { pg.type = "button"; pg.setAttribute("aria-label", "Peg " + (i + 1)); }
+      const g = state.pegs[i];
+      pg.innerHTML = '<i class="gt-pin"></i>' + (g !== null ? gearHTML(level().gears[g], "is-set") : "");
+      host.appendChild(pg);
+    });
+  }
+  function syncGeartrain() {
+    const lv = level();
+    const big = $("gtBig");
+    if (big) {
+      renderPegs($("gtPegs"), true);
+      renderTray($("gtTray"), true);
+      const held = $("gtHeld");
+      if (held) held.textContent = state.held === null ? "NOTHING IN HAND" : "IN HAND · " + lv.gears[state.held] + " TEETH";
+    }
+    const room = objEl("geartrain");
+    if (room) renderPegs(room.querySelector("[data-pegs]"), false);
+    const tray = objEl("tray");
+    if (tray) renderTray(tray.querySelector("[data-tray]"), false);
+  }
+  function buildGeartrain(body) {
+    body.appendChild($("tplGeartrain").content.cloneNode(true));
+    const lv = level();
+    const { rc, pegs, rackGap } = gtLayout();
+    const wall = body.querySelector(".gt-wall");
+    wall.style.setProperty("--rc", rc.toFixed(1) + "px");
+    wall.style.setProperty("--span", (pegs[3] + gtR(lv.answer[3]) + 40).toFixed(1) + "px");
+    wall.style.setProperty("--rack", rackGap.toFixed(1) + "px");
+    wall.style.setProperty("--peg4", pegs[3].toFixed(1) + "px");
+    $("gtCrank").innerHTML = gearHTML(lv.crankTeeth, "is-crank") + '<b class="gt-handle2"></b>';
+    discover("geartrain");
+    if (state.lockOpen) {
+      $("gtBig").classList.add("is-open", "is-running");
+      $("gtTurn").disabled = true;
+      $("lockText").textContent = "The train runs true and the bolt is drawn. Above you, the trapdoor is unlatched.";
+    }
+    $("gtTray").addEventListener("click", (e) => { const s = e.target.closest(".gt-slot"); if (s) pickGear(+s.dataset.gear); });
+    $("gtPegs").addEventListener("click", (e) => { const pg = e.target.closest(".gt-peg"); if (pg) tapPeg(+pg.dataset.peg); });
+    $("gtTurn").addEventListener("click", turnCrank);
+    syncGeartrain();
+  }
+  function pickGear(i) {
+    if (state.lockOpen || state.busy) return;
+    if (state.pegs.includes(i)) return;            // already on the wall
+    state.held = state.held === i ? null : i;
+    sfx.click();
+    syncGeartrain();
+  }
+  // does gear (radius r) on peg i sit cleanly against its neighbours?  returns "ok" | "jam" | "gap"
+  function fitOnPeg(i, r) {
+    const lv = level();
+    const { rc, pegs, rackGap } = gtLayout();
+    const leftX = i === 0 ? 0 : pegs[i - 1];
+    const leftR = i === 0 ? rc : (state.pegs[i - 1] !== null ? gtR(lv.gears[state.pegs[i - 1]]) : null);
+    let jam = false, gap = false;
+    if (leftR !== null) {
+      const d = pegs[i] - leftX, need = leftR + r;
+      if (need > d + GT_TOL) jam = true; else if (need < d - GT_TOL) gap = true;
+    }
+    if (i < 3 && state.pegs[i + 1] !== null) {
+      const d = pegs[i + 1] - pegs[i], need = r + gtR(lv.gears[state.pegs[i + 1]]);
+      if (need > d + GT_TOL) jam = true; else if (need < d - GT_TOL) gap = true;
+    }
+    if (i === 3) { if (r > rackGap + GT_TOL) jam = true; else if (r < rackGap - GT_TOL) gap = true; }
+    return jam ? "jam" : gap ? "gap" : "ok";
+  }
+  function tapPeg(i) {
+    if (state.lockOpen || state.busy) return;
+    const lv = level();
+    if (state.held === null) {
+      // take a gear back
+      if (state.pegs[i] !== null) { state.held = state.pegs[i]; state.pegs[i] = null; sfx.dial(); syncGeartrain(); }
+      return;
+    }
+    if (state.pegs[i] !== null) { $("lockText").textContent = "That peg is taken. Take the gear off it first."; sfx.locked(); return; }
+    const r = gtR(lv.gears[state.held]);
+    const fit = fitOnPeg(i, r);
+    if (fit === "jam") {
+      state.jams++;
+      sfx.grind(); sfx.locked();
+      const pg = $("gtPegs").querySelector(`[data-peg="${i}"]`);
+      if (pg) { pg.classList.remove("is-jam"); void pg.offsetWidth; pg.classList.add("is-jam"); }
+      const cost = state.jams > lv.freeJams;
+      if (cost) { state.wrongAttempts++; state.attempts++; }
+      $("lockText").textContent = (cost ? "Jammed again — " : "Jammed. ") + "The teeth ride up on the next wheel and it will not seat." + (cost ? " That one cost you." : "");
+      return;
+    }
+    state.pegs[i] = state.held;
+    state.held = null;
+    sfx.latch();
+    syncGeartrain();
+    $("lockText").textContent = fit === "gap"
+      ? "It seats — loosely. Daylight between the teeth. Turn the crank and see what turns."
+      : "It seats, and the teeth take up against the next wheel with a click.";
+  }
+  async function turnCrank() {
+    if (state.lockOpen || state.busy) return;
+    const lv = level();
+    state.attempts++;
+    // walk the drive from the crank: stop at the first empty peg or gap; a jam anywhere locks the crank
+    // a jam anywhere on the wall locks everything; otherwise follow the contacts left to right
+    const jammed = state.pegs.some((g, i) => g !== null && fitOnPeg(i, gtR(lv.gears[g])) === "jam");
+    let driven = 0;
+    if (!jammed) {
+      const { rc, pegs, rackGap } = gtLayout();
+      let leftX = 0, leftR = rc;
+      for (let i = 0; i < 4; i++) {
+        const g = state.pegs[i];
+        if (g === null) break;
+        const r = gtR(lv.gears[g]);
+        if (leftR + r < pegs[i] - leftX - GT_TOL) break;          // daylight: not driven
+        if (i === 3 && r < rackGap - GT_TOL) { driven = 4; break; } // turns, but never reaches the rack
+        driven++;
+        leftX = pegs[i]; leftR = r;
+      }
+      if (driven === 4 && gtR(lv.gears[state.pegs[3]]) < rackGap - GT_TOL) driven = 3.5;
+    }
+    const big = $("gtBig");
+    if (jammed) {
+      state.wrongAttempts++;
+      sfx.grind(); sfx.wrong();
+      big.classList.remove("is-jam"); void big.offsetWidth; big.classList.add("is-jam");
+      $("lockText").textContent = "The crank moves a finger's width and locks solid. Something on the wall is fighting something else.";
+      return;
+    }
+    if (driven === 4) return solveLock();
+    state.busy = true;
+    const turning = Math.floor(driven);
+    big.dataset.driven = turning;
+    big.classList.add("is-running");
+    sfx.grind();
+    const rid = ["at the crank", "between the first wheel and the second", "between the second wheel and the third", "between the third wheel and the fourth"];
+    $("lockText").textContent = driven === 0
+      ? "The crank turns and nothing follows it. The first wheel does not even touch."
+      : driven === 3.5
+        ? "All four wheels turn — and the last one spins under the rack without touching it. The bolt does not move."
+        : `The crank turns, ${turning === 1 ? "one wheel turns" : turning + " wheels turn"} — and the drive dies ${rid[turning]}. Nothing past it moves.`;
+    await wait(1700);
+    big.classList.remove("is-running");
+    big.removeAttribute("data-driven");
+    state.busy = false;
+  }
+  function cuckooCall() {
+    const c = objEl("cuckoo");
+    if (!c) return;
+    c.classList.add("is-out");
+    sfx.cuckoo();
+    setTimeout(() => c.classList.remove("is-out"), 1600);
+  }
+
   /* ---------- shared lock behaviour ---------- */
   function nudge(sel) {
     const el = document.querySelector(sel);
@@ -2153,6 +2467,7 @@
       gridsafe: ["The handle will not throw.", "Nothing. The bolts stay out.", "Wrong reference — the dials spin back.", "Still locked."],
       cabinet: ["The drawer does not budge.", "Locked. The knob turns in your hand and nothing follows it.", "Not that one. The brass does not care how sure you were.", "Still shut."],
       boxes: ["Paper. Bonds, deeds, somebody's will. Not a key.", "More paper. He said count, not guess.", "Paper again. Two lines of tiles leave that door — you want the one that ends at the desk.", "Paper."],
+      geartrain: ["The crank locks.", "Jammed solid.", "Something is fighting something.", "Locked."],
     }[level().lock];
     const t = $("lockText");
     if (t) t.textContent = msgs[Math.min(msgs.length - 1, state.wrongAttempts - 1)] + (state.wrongAttempts >= 3 ? " The room has already told you the answer." : "");
@@ -2273,6 +2588,22 @@
       await wait(1000);
       txt.textContent = "Felt, and on it a short iron key with a square bit. Bolt key. Take it.";
       toast("The right box.");
+    } else if (kind === "geartrain") {
+      const big = $("gtBig");
+      txt.textContent = "The crank turns. The first wheel takes it, and the second, and the third — and the fourth walks the rack along its teeth…";
+      big.dataset.driven = 4;
+      big.classList.add("is-running");
+      sfx.ratchet();
+      await wait(1400);
+      sfx.ratchet();
+      big.classList.add("is-open");
+      objEl("geartrain").classList.add("is-open", "is-running");
+      objEl("door").classList.add("is-unlocked");
+      await wait(900);
+      sfx.latch();
+      $("gtTurn").disabled = true;
+      txt.textContent = "The rod lifts. Above you, with a bang, the bolt comes clear of the trapdoor.";
+      toast("The bolt is drawn. The trapdoor is free.");
     } else {
       const wall = $("valveWall");
       txt.textContent = "Somewhere behind the wall, water starts to move…";
@@ -2591,6 +2922,15 @@
     stopAmbient();
     const lv = level();
     if (lv.ambience) sfx.ambience.start(lv.ambience);
+    if (lv.id === 9) {
+      const call = () => {
+        if (state.levelId !== 9 || state.screen !== "room") return;
+        cuckooCall();
+        ambTimers.push(setTimeout(call, 60000));
+      };
+      ambTimers.push(setTimeout(call, 60000));
+      return;
+    }
     if (lv.id === 8) {
       const crackle = () => {
         if (state.levelId !== 8 || state.screen !== "room") return;
@@ -2668,6 +3008,18 @@
       renderBoxes(el.querySelector("[data-boxes]"), false);
       renderCalendar(el.querySelector("[data-cal]"), false);
       setScanner("SCANNER · CH 3 · QUIET");
+    }
+    document.querySelectorAll(".obj").forEach((el) => el.classList.remove("is-running", "is-out"));
+    if (lv.id === 9) {
+      const el = document.querySelector(".level-9");
+      const sk = el.querySelector("[data-sktrain]");
+      if (sk) sk.innerHTML = lv.answer.slice(0, 3).map((t) => gearHTML(t, "is-model")).join("");
+      const wc = el.querySelector("[data-clocks]");
+      if (wc) wc.innerHTML = ["4:50", "11:10", "7:25", "2:40", "9:05", "6:15", "12:55", "3:30", "8:45", "1:20", "10:35"].map((t, i) => {
+        const [h, m] = t.split(":").map(Number);
+        return `<i class="wk-clock c${i + 1}"><b class="wk-h" style="--a:${(h % 12) * 30 + m * 0.5}deg"></b><b class="wk-m" style="--a:${m * 6}deg"></b></i>`;
+      }).join("");
+      syncGeartrain();
     }
     document.querySelectorAll(".bp-sw").forEach((el) => el.classList.remove("on"));
     document.querySelectorAll(".scope").forEach((el) => { el.style.removeProperty("--brg"); el.style.removeProperty("--sx"); el.style.removeProperty("--sy"); });

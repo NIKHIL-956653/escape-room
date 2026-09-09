@@ -3868,3 +3868,279 @@ button { font-family: inherit; cursor: pointer; }
 }
 /* a transform on the vault itself flattens the swung door out of existence in Chromium — keep it flat */
 .vault:hover, .vault:focus-visible, .vault:active { transform: none; }
+
+/* ==========================================================================
+   LEVEL 9 — THE CLOCKMAKER'S BENCH
+   SKELETON PASS: positions + the working gear-train close-up.
+   Room art (everything marked PLACEHOLDER) is painted in a separate pass.
+   ========================================================================== */
+.level-9 { background: #0b0906; }
+
+/* --- gears: shared by the room, the skeleton clock and the close-up ------ */
+.gt-gear { position: relative; display: block; width: calc(var(--r) * 2); height: calc(var(--r) * 2); flex: none; }
+.gt-gear .gt-teeth { position: absolute; inset: 0; border-radius: 50%; background: repeating-conic-gradient(from 0deg, #d9b455 0deg calc(180deg / var(--n)), transparent calc(180deg / var(--n)) calc(360deg / var(--n))); }
+.gt-gear .gt-disc { position: absolute; inset: 11%; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #f0d28c, #b8893a 55%, #6b4a16); box-shadow: inset 0 0 0 2px rgba(0,0,0,.35), 0 2px 6px rgba(0,0,0,.5); }
+.gt-gear .gt-disc::after { content: ""; position: absolute; inset: 34%; border-radius: 50%; background: radial-gradient(circle, #2a1c08, #4a3410 60%, #1a1008); box-shadow: inset 0 0 4px #000; }
+.gt-gear b { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: .04em; color: #2a1c08; text-shadow: 0 1px 0 rgba(255,240,200,.5); z-index: 2; }
+.gt-gear.is-crank .gt-disc { background: radial-gradient(circle at 38% 34%, #dfe4ea, #8b919d 55%, #40454d); }
+.gt-gear.is-crank b { color: #1a1c22; text-shadow: none; }
+@keyframes gtSpin { to { transform: rotate(360deg); } }
+@keyframes gtSpinBack { to { transform: rotate(-360deg); } }
+
+/* --- the gear train, close up -------------------------------------------- */
+.gt-big { position: relative; width: min(520px, 94vw); margin: 0 auto; }
+.gt-wall { position: relative; height: 210px; --cx: 64px; --cy: 118px; border-radius: 6px; background: linear-gradient(180deg, #3a3128, #221b14); box-shadow: inset 0 0 0 3px #15100a, inset 0 0 40px rgba(0,0,0,.6), 0 16px 40px rgba(0,0,0,.7); overflow: visible; }
+@media (max-width: 480px) {
+  .gt-big { width: 100%; }
+  .gt-wall { --cx: 40px; transform: scale(.72); transform-origin: 0 50%; width: 139%; margin-bottom: -20px; }
+  .gt-traybig { gap: 5px; padding: 8px; }
+  .gt-slot { height: 84px; }
+}
+.gt-wall::before { content: ""; position: absolute; left: 24px; right: 24px; top: var(--cy); height: 2px; margin-top: -1px; background: repeating-linear-gradient(90deg, rgba(255,220,160,.18) 0 6px, transparent 6px 12px); }
+.gt-crank2 { position: absolute; left: var(--cx); top: var(--cy); width: 0; height: 0; }
+.gt-crank2 .gt-gear { position: absolute; left: 0; top: 0; transform: translate(-50%, -50%); }
+.gt-handle2 { position: absolute; left: -6px; top: -6px; width: 12px; height: 12px; margin: calc(var(--rc) * -0.55) 0 0 calc(var(--rc) * 0.55); border-radius: 50%; background: radial-gradient(circle at 35% 35%, #f0d28c, #6b4a16); box-shadow: 0 2px 4px rgba(0,0,0,.6); z-index: 3; }
+.gt-pegs2 { position: absolute; left: var(--cx); top: var(--cy); width: 0; height: 0; }
+.gt-peg { position: absolute; left: calc(var(--x) - 30px); top: -30px; width: 60px; height: 60px; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+.gt-peg .gt-pin { position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, #9aa0a9, #2a2d33 70%); box-shadow: 0 0 0 3px rgba(0,0,0,.35), 0 0 0 6px rgba(255,220,160,.06); z-index: 1; }
+.gt-peg::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; border: 1px dashed rgba(255,220,160,.22); }
+.gt-peg.is-set::before { display: none; }
+.gt-peg .gt-gear { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.gt-peg:hover .gt-pin, .gt-peg:focus-visible .gt-pin { box-shadow: 0 0 0 3px rgba(0,0,0,.35), 0 0 0 6px rgba(214,178,94,.45); }
+.gt-peg:focus-visible { outline: none; }
+.gt-peg.is-jam .gt-pin { animation: shake .45s cubic-bezier(.36,.07,.19,.97) both; }
+/* the rack and the rod up to the bolt */
+.gt-rack2 { position: absolute; left: calc(var(--cx) + var(--peg4) - 50px); top: calc(var(--cy) - var(--rack) - 12px); width: 150px; height: 12px; background: linear-gradient(180deg, #9aa0a9, #5c6169); box-shadow: 0 2px 6px rgba(0,0,0,.6); transition: transform 1.4s cubic-bezier(.4,.05,.2,1); }
+.gt-rack2 i { position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: repeating-linear-gradient(90deg, #9aa0a9 0 4px, transparent 4px 8px); }
+.gt-rack2::after { content: ""; position: absolute; right: 8px; top: -4px; width: 6px; height: 4px; background: #2a1c08; }
+.gt-rod2 { position: absolute; left: calc(var(--cx) + var(--peg4) + 92px); top: 6px; width: 8px; height: calc(var(--cy) - var(--rack) - 16px); background: linear-gradient(90deg, #40454d, #b8b8c2 50%, #40454d); box-shadow: 0 0 6px rgba(0,0,0,.6); transition: transform 1.4s cubic-bezier(.4,.05,.2,1); }
+.gt-boltlabel { position: absolute; left: calc(var(--cx) + var(--peg4) + 108px); top: 10px; font-family: var(--mono); font-size: 8px; letter-spacing: .3em; color: rgba(255,220,160,.55); }
+.gt-big.is-open .gt-rack2 { transform: translateX(44px); }
+.gt-big.is-open .gt-rod2 { transform: translateY(-34px); }
+/* the drive: the crank always turns when running; pegs turn up to data-driven */
+.gt-big.is-running .gt-crank2 .gt-gear > i { animation: gtSpin 3s linear infinite; }
+.gt-big.is-running[data-driven="1"] .gt-peg:nth-child(1) .gt-gear > i,
+.gt-big.is-running[data-driven="2"] .gt-peg:nth-child(-n+2) .gt-gear > i,
+.gt-big.is-running[data-driven="3"] .gt-peg:nth-child(-n+3) .gt-gear > i,
+.gt-big.is-running[data-driven="4"] .gt-peg:nth-child(-n+4) .gt-gear > i { animation: gtSpinBack calc(var(--n) * 0.15s) linear infinite; }
+.gt-big.is-running[data-driven="2"] .gt-peg:nth-child(2) .gt-gear > i,
+.gt-big.is-running[data-driven="3"] .gt-peg:nth-child(2) .gt-gear > i,
+.gt-big.is-running[data-driven="4"] .gt-peg:nth-child(2) .gt-gear > i,
+.gt-big.is-running[data-driven="4"] .gt-peg:nth-child(4) .gt-gear > i { animation-name: gtSpin; }
+.gt-big.is-jam .gt-wall { animation: shake .45s cubic-bezier(.36,.07,.19,.97) both; }
+/* the tray */
+.gt-traybig { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 14px; padding: 12px; border-radius: 6px; background: linear-gradient(180deg, #2a2118, #1a140e); box-shadow: inset 0 0 0 2px #0e0a06, inset 0 0 30px rgba(0,0,0,.6); }
+.gt-slot { position: relative; height: 92px; display: grid; place-items: center; border: 0; padding: 0 0 18px; background: rgba(0,0,0,.25); border-radius: 6px; cursor: pointer; transition: background .15s, box-shadow .15s; overflow: hidden; }
+.gt-slot .gt-gear { position: absolute; left: 50%; top: 36px; transform: translate(-50%, -50%) scale(var(--s, .6)); }
+.gt-slot .gt-gear b { display: none; }
+.gt-slot::before { content: attr(data-teeth); position: absolute; left: 0; right: 0; bottom: 4px; text-align: center; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: #e8c77c; }
+.gt-slot.is-empty::before { opacity: .3; }
+.gt-slot:hover { background: rgba(214,178,94,.12); }
+.gt-slot:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gold-2); }
+.gt-slot.is-held { background: rgba(214,178,94,.22); box-shadow: 0 0 0 2px var(--gold-2), 0 0 18px rgba(214,178,94,.4); }
+.gt-slot.is-empty { pointer-events: none; }
+.gt-slot.is-empty .gt-gear { opacity: .14; }
+.gt-slot.is-empty::after { content: ""; position: absolute; left: 50%; top: 36px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; border: 1px dashed rgba(255,220,160,.25); }
+
+/* gears as they appear in the room (small) */
+.geartrain .gt-pegs .gt-gear, .gtray .gt-gear, .sk-train .gt-gear { pointer-events: none; }
+.geartrain .gt-pegs { position: absolute; left: 52px; top: 60%; width: 0; height: 0; transform: scale(.72); transform-origin: 0 0; }
+.geartrain .gt-peg { position: absolute; }
+.geartrain .gt-peg::before { inset: 10px; }
+.geartrain .gt-gear b { font-size: 9px; }
+.geartrain.is-running .gt-gear > i { animation: gtSpinBack calc(var(--n) * 0.2s) linear infinite; }
+.geartrain.is-running .gt-peg:nth-child(even) .gt-gear > i { animation-name: gtSpin; }
+.gtray .gt-tray { position: absolute; inset: 4px; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: 2px 4px; }
+.obj > .gt-tray { display: flex; }
+.gtray .gt-slot { width: 26px; height: 26px; padding: 0; background: none; pointer-events: none; overflow: visible; }
+.gtray .gt-slot::before { display: none; }
+.gtray .gt-slot .gt-gear { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) scale(calc(var(--s, .6) * .36)); }
+.gtray .gt-slot .gt-gear b { display: none; }
+.gtray .gt-slot.is-empty .gt-gear { opacity: .1; }
+.gtray .gt-slot.is-empty::after { inset: 8px; }
+.sk-train { position: absolute; left: 50%; top: 42%; display: flex; align-items: center; transform: translate(-50%, -50%) scale(.6); gap: 0; }
+.obj > .sk-frame > .sk-train, .sk-frame .sk-train { display: flex; }
+.sk-train .gt-gear { margin: 0 -1px; }
+.sk-train .gt-gear > i { animation: gtSpin calc(var(--n) * 0.5s) linear infinite; }
+.sk-train .gt-gear:nth-child(2) > i { animation-name: gtSpinBack; }
+.sk-train .gt-gear b { font-size: 12px; }
+.zoom .skeleton.is-close .sk-train { transform: translate(-50%, -50%) scale(.9); }
+
+/* --- the room ------------------------------------------------------------- */
+.cm-ceiling { position: absolute; left: 0; right: 0; top: 0; height: 112px; overflow: hidden; background: linear-gradient(180deg, #1a120a, #2a1d12 60%, #1e150c); box-shadow: inset 0 -10px 24px rgba(0,0,0,.7); }
+.cm-ceiling::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.25) 0 2px, transparent 2px 120px), repeating-linear-gradient(0deg, rgba(255,200,140,.03) 0 2px, transparent 2px 9px); }
+.cm-beam { position: absolute; top: 0; bottom: 0; width: 34px; background: linear-gradient(90deg, #140d06, #3a2a18 30%, #2a1d10 70%, #120b05); box-shadow: 0 0 14px rgba(0,0,0,.8); }
+.cm-beam.b1 { left: 220px; } .cm-beam.b2 { left: 640px; } .cm-beam.b3 { left: 1060px; }
+.cm-wall { position: absolute; left: 0; right: 0; top: 112px; height: 450px; overflow: hidden; background: linear-gradient(180deg, #8a7048, #6f5a3a 45%, #4e3f28); }
+.cm-plaster {
+  position: absolute; inset: 0;
+  background-image:
+    radial-gradient(ellipse 30% 40% at 12% 30%, rgba(0,0,0,.18), transparent 70%),
+    radial-gradient(ellipse 26% 50% at 92% 60%, rgba(0,0,0,.2), transparent 70%),
+    repeating-linear-gradient(97deg, transparent 0 53px, rgba(255,230,180,.05) 53px 55px, transparent 55px 121px),
+    repeating-linear-gradient(-8deg, transparent 0 140px, rgba(40,25,10,.08) 140px 141px, transparent 141px 300px),
+    linear-gradient(180deg, rgba(0,0,0,.28), transparent 18%, transparent 78%, rgba(0,0,0,.4));
+}
+.cm-plaster::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 18px; background: linear-gradient(180deg, #3a2a16, #221709); box-shadow: 0 -2px 6px rgba(0,0,0,.4); }
+.cm-shelf { position: absolute; left: 60px; right: 60px; top: 220px; height: 8px; background: linear-gradient(180deg, #5a4020, #2e2010); box-shadow: 0 6px 10px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,220,160,.2); }
+.cm-floor { position: absolute; left: 0; right: 0; top: 562px; bottom: 0; overflow: hidden; background: #241a10; }
+.cm-boards { position: absolute; inset: 0; background-image: repeating-linear-gradient(0deg, rgba(0,0,0,.45) 0 2px, transparent 2px 30px), repeating-linear-gradient(90deg, transparent 0 210px, rgba(0,0,0,.35) 210px 212px, transparent 212px 420px), linear-gradient(180deg, #4a3620, #2e2112 60%, #201608); }
+.cm-boards::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,.55), transparent 35%, rgba(0,0,0,.4)); }
+
+/* the lamp and its pool of light */
+.lp-lamp { position: absolute; left: 700px; top: 0; width: 140px; height: 230px; z-index: 4; }
+.lp-lamp .lp-cord { position: absolute; left: 50%; top: 0; width: 3px; height: 156px; margin-left: -1.5px; background: linear-gradient(90deg, #0a0806, #2a2018, #0a0806); }
+.lp-lamp .lp-shade { position: absolute; left: 8px; right: 8px; top: 150px; height: 54px; background: linear-gradient(180deg, #1f5a3a, #14402a 70%, #0d2a1b); clip-path: polygon(34% 0, 66% 0, 100% 100%, 0 100%); box-shadow: 0 8px 16px rgba(0,0,0,.6); }
+.lp-lamp .lp-shade::before { content: ""; position: absolute; left: 0; right: 0; top: 0; bottom: 0; background: linear-gradient(90deg, rgba(0,0,0,.35), rgba(255,255,255,.12) 40%, rgba(0,0,0,.3)); }
+.lp-lamp .lp-shade::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 8px; background: linear-gradient(180deg, #d9b455, #7a5a1c); }
+.lp-lamp .lp-bulb { position: absolute; left: 50%; top: 196px; width: 40px; height: 14px; margin-left: -20px; border-radius: 50%; background: radial-gradient(ellipse, #fff8dc, #ffe6a8 60%, rgba(255,220,150,0)); box-shadow: 0 0 34px 12px rgba(255,225,160,.55); }
+.lp-glow { position: absolute; left: 380px; top: 200px; width: 700px; height: 440px; z-index: 6; pointer-events: none; background: radial-gradient(ellipse at 50% 0%, rgba(255,222,150,.34), rgba(255,200,120,.12) 40%, transparent 68%); mix-blend-mode: screen; }
+.cm-dust { position: absolute; inset: 0; pointer-events: none; }
+
+/* --- the trapdoor: the way out ------------------------------------------- */
+.trapdoor { left: 880px; top: 8px; width: 220px; height: 96px; z-index: 6; perspective: 800px; }
+.trapdoor .door-frame, .trapdoor .door-light { display: none; }
+.th-frame { position: absolute; inset: 0; background: #0a0806; box-shadow: inset 0 0 0 7px #3a2a18, inset 0 0 0 9px #15100a, 0 0 22px rgba(0,0,0,.8); perspective: 800px; }
+.th-dark { position: absolute; inset: 7px; background: radial-gradient(ellipse at 50% 40%, #16110b, #04030a 75%); }
+.th-lid { position: absolute; inset: 7px; background: linear-gradient(180deg, #6b4a2a, #4a3218 60%, #3a2612); transform-origin: 50% 0; transition: transform 2.2s cubic-bezier(.4,.1,.2,1); box-shadow: inset 0 0 0 2px rgba(0,0,0,.35); }
+.th-lid .th-planks { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 48px, rgba(0,0,0,.45) 48px 51px), repeating-linear-gradient(0deg, rgba(255,200,140,.05) 0 2px, transparent 2px 7px); }
+.th-lid .th-strap { position: absolute; left: 14px; right: 14px; top: 50%; height: 9px; margin-top: -4.5px; background: linear-gradient(180deg, #3a3a40, #101014); box-shadow: 0 1px 0 rgba(255,255,255,.1); }
+.th-lid .th-strap::before, .th-lid .th-strap::after { content: ""; position: absolute; top: 1px; width: 7px; height: 7px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #9a9aa2, #2a2a2e); }
+.th-lid .th-strap::before { left: 8px; } .th-lid .th-strap::after { right: 8px; }
+.th-bolt { position: absolute; left: 50%; bottom: -16px; width: 12px; height: 44px; margin-left: -6px; background: linear-gradient(90deg, #40454d, #b8b8c2 50%, #40454d); box-shadow: 0 0 8px rgba(0,0,0,.7); transition: transform 1.2s, box-shadow .6s; }
+.th-bolt::before { content: ""; position: absolute; left: -10px; top: 6px; width: 32px; height: 8px; border-radius: 2px; background: linear-gradient(180deg, #5c6169, #23262c); }
+.trapdoor.is-unlocked .th-bolt { transform: translateY(22px); box-shadow: 0 0 14px 4px rgba(255,220,150,.6); }
+.trapdoor.is-open .th-lid { transform: rotateX(-104deg); }
+.trapdoor.is-open .th-dark { box-shadow: inset 0 -20px 40px rgba(255,220,160,.12); }
+.ld-ladder { position: absolute; left: 50%; top: 90px; width: 72px; height: 0; margin-left: -36px; overflow: hidden; transition: height 1.6s .6s ease; background: linear-gradient(90deg, #6b4a16 0 9px, transparent 9px calc(100% - 9px), #6b4a16 calc(100% - 9px)); filter: drop-shadow(0 6px 8px rgba(0,0,0,.7)); }
+.ld-ladder i { display: block; height: 9px; margin: 36px 9px 0; border-radius: 2px; background: linear-gradient(180deg, #a27a34, #6b4a16); }
+.trapdoor.is-open .ld-ladder { height: 470px; }
+.trapdoor.is-rattling .th-lid { animation: hatchRattle .4s ease-in-out; }
+
+/* --- the gear train on the wall ------------------------------------------ */
+.geartrain { left: 860px; top: 300px; width: 340px; height: 170px; z-index: 5; }
+.gt-plate { position: absolute; inset: 0; border-radius: 4px; background: linear-gradient(160deg, #3a3129, #241d16 50%, #2f2720); box-shadow: inset 0 0 0 3px #15100a, inset 0 0 0 5px rgba(255,220,160,.05), inset 0 0 40px rgba(0,0,0,.55), 0 10px 26px rgba(0,0,0,.7); }
+.gt-plate::before { content: ""; position: absolute; inset: 10px; pointer-events: none; background-image: radial-gradient(circle, rgba(220,226,234,.5) 0 2px, transparent 3px); background-size: 100% 100%; background-repeat: no-repeat; background-position: 0 0; box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.gt-plate::after { content: ""; position: absolute; left: 30px; right: 30px; top: 60%; height: 2px; margin-top: -1px; background: repeating-linear-gradient(90deg, rgba(255,220,160,.16) 0 6px, transparent 6px 12px); }
+.gt-plate .gt-rod { position: absolute; left: 276px; top: -190px; width: 9px; height: 250px; background: linear-gradient(90deg, #40454d, #b8b8c2 50%, #40454d); box-shadow: 0 0 6px rgba(0,0,0,.7); transition: transform 1.2s; }
+.gt-plate .gt-rod::before, .gt-plate .gt-rod::after { content: ""; position: absolute; left: -6px; width: 21px; height: 8px; border-radius: 2px; background: linear-gradient(180deg, #5c6169, #23262c); }
+.gt-plate .gt-rod::before { top: 40px; } .gt-plate .gt-rod::after { top: 150px; }
+.geartrain.is-open .gt-rod { transform: translateY(-24px); }
+.gt-plate .gt-rack { position: absolute; left: 218px; top: 54px; width: 110px; height: 9px; background: linear-gradient(180deg, #9aa0a9, #5c6169); box-shadow: 0 2px 4px rgba(0,0,0,.6); transition: transform 1.2s; }
+.gt-plate .gt-rack i { position: absolute; left: 0; right: 0; bottom: -4px; height: 4px; background: repeating-linear-gradient(90deg, #9aa0a9 0 3px, transparent 3px 6px); }
+.geartrain.is-open .gt-rack { transform: translateX(32px); }
+.gt-plate .gt-crank { position: absolute; left: 52px; top: 60%; width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; background: repeating-conic-gradient(#b8b8c2 0deg 9deg, transparent 9deg 18deg); }
+.gt-plate .gt-crank .gt-teeth { position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #dfe4ea, #8b919d 55%, #40454d); box-shadow: inset 0 0 0 2px rgba(0,0,0,.35); }
+.gt-plate .gt-crank .gt-handle { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; margin: -16px 0 0 6px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #f0d28c, #6b4a16); }
+.geartrain.is-running .gt-crank { animation: gtSpin 3s linear infinite; }
+.geartrain:hover .gt-plate, .geartrain:focus-visible .gt-plate { box-shadow: inset 0 0 0 3px #15100a, inset 0 0 0 5px rgba(214,178,94,.35), inset 0 0 40px rgba(0,0,0,.55), 0 10px 26px rgba(0,0,0,.7); }
+
+/* --- the wall of clocks -------------------------------------------------- */
+.wallclocks { left: 90px; top: 120px; width: 600px; height: 170px; z-index: 5; }
+.obj > .wk-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; position: absolute; inset: 0; }
+.wk-clock { position: relative; display: block; aspect-ratio: 1; max-height: 76px; border-radius: 50%; background: radial-gradient(circle at 45% 38%, #f6efd8, #dfd1ac 68%, #b8a478); box-shadow: inset 0 0 0 5px #5a3a1c, inset 0 0 0 7px #2a1a0a, inset 0 0 12px rgba(0,0,0,.25), 0 6px 12px rgba(0,0,0,.6); }
+.wk-clock::before { content: ""; position: absolute; inset: 9px; border-radius: 50%; background: repeating-conic-gradient(from -1deg, rgba(60,40,20,.85) 0 2deg, transparent 2deg 30deg); -webkit-mask: radial-gradient(circle, transparent 72%, #000 73%); mask: radial-gradient(circle, transparent 72%, #000 73%); }
+.wk-clock::after { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px; border-radius: 50%; background: #1a1008; }
+.wk-clock b { position: absolute; left: 50%; bottom: 50%; width: 3px; margin-left: -1.5px; border-radius: 2px 2px 0 0; background: #1a1008; transform-origin: 50% 100%; transform: rotate(var(--a)); }
+.wk-clock .wk-h { height: 26%; } .wk-clock .wk-m { height: 38%; width: 2px; margin-left: -1px; }
+.wk-clock:nth-child(4)::after, .wk-clock:nth-child(9)::after { box-shadow: 0 22px 0 -1px rgba(120,20,20,.0); }
+.wallclocks:hover .wk-clock, .wallclocks:focus-visible .wk-clock { filter: brightness(1.06); }
+
+/* --- the cuckoo ---------------------------------------------------------- */
+.cuckoo { left: 840px; top: 120px; width: 80px; height: 150px; z-index: 5; }
+.cu-house { position: absolute; left: 0; right: 0; top: 0; height: 100px; background: linear-gradient(180deg, #4a3018, #2e1c0c); box-shadow: inset 0 0 0 2px rgba(0,0,0,.4), 0 6px 14px rgba(0,0,0,.6); }
+.cu-house .cu-roof { position: absolute; left: -10px; right: -10px; top: -22px; height: 34px; background: linear-gradient(180deg, #6b4a26, #3a2612); clip-path: polygon(50% 0, 100% 100%, 0 100%); filter: drop-shadow(0 3px 3px rgba(0,0,0,.5)); }
+.cu-house .cu-face { position: absolute; left: 50%; top: 44px; width: 40px; height: 40px; margin-left: -20px; border-radius: 50%; background: radial-gradient(circle at 45% 40%, #f6efd8, #dfd1ac 70%); box-shadow: inset 0 0 0 3px #2a1a0a; }
+.cu-house .cu-face::before { content: ""; position: absolute; left: 50%; bottom: 50%; width: 2px; height: 14px; margin-left: -1px; background: #1a1008; transform-origin: 50% 100%; animation: gtSpin 60s linear infinite; }
+.cu-house .cu-door { position: absolute; left: 50%; top: 12px; width: 18px; height: 22px; margin-left: -9px; background: #0d0905; box-shadow: inset 0 0 0 2px #5a3a1c; }
+.cu-house .cu-bird { position: absolute; left: 50%; top: 16px; width: 14px; height: 12px; margin-left: -7px; border-radius: 50% 50% 40% 40%; background: radial-gradient(circle at 40% 40%, #f0d28c, #a27a34); transform: scale(0); transition: transform .3s cubic-bezier(.2,1.4,.3,1); }
+.cu-house .cu-bird::after { content: ""; position: absolute; right: -4px; top: 4px; width: 0; height: 0; border-left: 5px solid #d9b455; border-top: 3px solid transparent; border-bottom: 3px solid transparent; }
+.cuckoo.is-out .cu-bird { transform: scale(1) translateY(-5px); }
+.cu-weights { position: absolute; left: 22px; right: 22px; top: 100px; height: 50px; }
+.cu-weights i { position: absolute; top: 0; width: 8px; height: 42px; border-radius: 3px; background: linear-gradient(90deg, #6b4a16, #d9b455 50%, #6b4a16); box-shadow: 0 3px 6px rgba(0,0,0,.6); }
+.cu-weights i::before { content: ""; position: absolute; left: 3px; top: -12px; width: 2px; height: 12px; background: repeating-linear-gradient(180deg, #9a9aa2 0 2px, transparent 2px 4px); }
+.cu-weights i:first-child { left: 0; } .cu-weights i:last-child { right: 0; height: 34px; }
+
+/* --- the bench and what is on it ----------------------------------------- */
+.bench { position: absolute; left: 100px; top: 470px; width: 640px; height: 150px; z-index: 4; pointer-events: none; }
+.bn-top { position: absolute; left: -10px; right: -10px; top: 0; height: 24px; border-radius: 3px; background: linear-gradient(180deg, #8a5a30, #5a3a1c 60%, #3a2412); box-shadow: 0 8px 16px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,220,160,.3); }
+.bn-top::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, transparent 0 60px, rgba(0,0,0,.18) 60px 62px), repeating-linear-gradient(0deg, rgba(255,200,140,.05) 0 2px, transparent 2px 6px); }
+.bn-front { position: absolute; left: 10px; right: 10px; top: 24px; bottom: 10px; background: linear-gradient(180deg, #4a3218, #2e2010); box-shadow: inset 0 0 0 2px rgba(0,0,0,.35); }
+.bn-front::before { content: ""; position: absolute; left: 40%; right: 20px; top: 14px; bottom: 14px; background: linear-gradient(180deg, #3a2814, #261a0c); box-shadow: inset 0 0 0 1px rgba(0,0,0,.4); }
+.bn-leg { position: absolute; top: 22px; width: 20px; height: 128px; background: linear-gradient(90deg, #1a1008, #4a3218 50%, #1a1008); }
+.bn-leg.l { left: 26px; } .bn-leg.r { right: 26px; }
+
+.skeleton { left: 150px; top: 304px; width: 150px; height: 176px; z-index: 5; }
+.sk-base { position: absolute; left: 0; right: 0; bottom: 0; height: 22px; border-radius: 3px; background: linear-gradient(180deg, #2a1c0e, #14100a); box-shadow: 0 4px 8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,220,160,.2); }
+.sk-frame { position: absolute; left: 20px; right: 20px; top: 20px; bottom: 22px; }
+.sk-frame::before { content: ""; position: absolute; left: 50%; top: 10px; bottom: 0; width: 6px; margin-left: -3px; background: linear-gradient(90deg, #7a5a1c, #e8c77c, #7a5a1c); }
+.sk-frame::after { content: ""; position: absolute; left: 10px; right: 10px; bottom: 0; height: 6px; background: linear-gradient(90deg, #7a5a1c, #e8c77c, #7a5a1c); }
+.sk-dial { position: absolute; left: 50%; top: 62%; width: 42px; height: 42px; margin-left: -21px; border-radius: 50%; background: radial-gradient(circle at 45% 40%, #f6efd8, #dfd1ac 70%); box-shadow: inset 0 0 0 2px #7a5a1c; z-index: 2; }
+.sk-dial .sk-h, .sk-dial .sk-m { position: absolute; left: 50%; bottom: 50%; width: 2px; margin-left: -1px; background: #1a1008; transform-origin: 50% 100%; }
+.sk-dial .sk-h { height: 11px; transform: rotate(300deg); } .sk-dial .sk-m { height: 16px; animation: gtSpin 60s linear infinite; }
+.sk-pend { position: absolute; left: 50%; top: 78%; width: 3px; height: 30px; margin-left: -1.5px; background: linear-gradient(180deg, #7a5a1c, #e8c77c); transform-origin: 50% 0; animation: pendulum 1s ease-in-out infinite alternate; }
+.sk-pend i { position: absolute; left: 50%; bottom: -8px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #f0d28c, #7a5a1c); }
+.sk-dome { position: absolute; left: 0; right: 0; top: 0; bottom: 22px; border-radius: 50% 50% 4px 4px / 44% 44% 4px 4px; background: linear-gradient(160deg, rgba(255,255,255,.22), rgba(200,220,255,.05) 40%, rgba(255,255,255,.02) 70%, rgba(255,255,255,.12)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), inset -10px -10px 30px rgba(255,255,255,.05), 0 6px 14px rgba(0,0,0,.35); pointer-events: none; }
+.sk-dome::before { content: ""; position: absolute; left: 14%; top: 8%; width: 12%; height: 40%; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,.5), transparent); filter: blur(1px); }
+
+.gtray { left: 340px; top: 424px; width: 300px; height: 64px; z-index: 5; }
+.gt-tray { border-radius: 4px; background: linear-gradient(180deg, #1f4a2a, #163620); box-shadow: inset 0 0 0 4px #5a3a1c, inset 0 0 0 6px #2a1a0a, inset 0 0 20px rgba(0,0,0,.6), 0 6px 12px rgba(0,0,0,.6); }
+
+.pocketwatch { left: 660px; top: 440px; width: 60px; height: 40px; z-index: 6; }
+.pw-case { position: absolute; left: 0; top: 0; width: 36px; height: 36px; border-radius: 50%; background: radial-gradient(circle at 38% 34%, #f4f4f4, #a9aeb7 60%, #5c6169); box-shadow: 0 3px 6px rgba(0,0,0,.6); }
+.pw-case .pw-face { position: absolute; inset: 5px; border-radius: 50%; background: radial-gradient(circle, #f6efd8, #dfd1ac 75%); box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
+.pw-case .pw-face::after { content: ""; position: absolute; left: 50%; bottom: 50%; width: 1.5px; height: 9px; margin-left: -.75px; background: #1a1008; transform-origin: 50% 100%; transform: rotate(140deg); }
+.pw-case .pw-crown { position: absolute; left: 50%; top: -6px; width: 6px; height: 7px; margin-left: -3px; border-radius: 2px; background: #c9ccd2; }
+.pw-chain { position: absolute; left: 30px; top: 22px; width: 30px; height: 4px; border-radius: 2px; background: repeating-linear-gradient(90deg, #c9ccd2 0 3px, transparent 3px 5px); transform: rotate(18deg); }
+
+.loupe { left: 316px; top: 498px; width: 50px; height: 30px; z-index: 6; }
+.lu-ring { position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; border: 4px solid #1a1a1e; box-shadow: 0 2px 4px rgba(0,0,0,.5); }
+.lu-ring::after { content: ""; position: absolute; left: 22px; top: 8px; width: 22px; height: 3px; background: #1a1a1e; transform: rotate(-20deg); }
+.lu-glass { position: absolute; left: 4px; top: 4px; width: 18px; height: 18px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.6), rgba(180,210,255,.25) 50%, rgba(255,255,255,.1)); }
+
+.oilcan { left: 590px; top: 512px; width: 60px; height: 60px; z-index: 6; }
+.oc-body { position: absolute; left: 10px; right: 10px; bottom: 0; height: 32px; border-radius: 6px 6px 3px 3px; background: linear-gradient(90deg, #7a5a1c, #e8c77c 40%, #a27a34 80%, #5a3c14); box-shadow: 0 3px 6px rgba(0,0,0,.6); }
+.oc-spout { position: absolute; left: 34px; top: 8px; width: 26px; height: 4px; border-radius: 2px; background: linear-gradient(90deg, #a27a34, #e8c77c); transform: rotate(-38deg); transform-origin: 0 50%; }
+.oc-thumb { position: absolute; left: 20px; top: 20px; width: 14px; height: 10px; border-radius: 50% 50% 0 0; background: #5a3c14; }
+
+.winder { left: 690px; top: 380px; width: 90px; height: 90px; z-index: 6; }
+.wd-body { position: absolute; left: 12px; right: 12px; bottom: 0; height: 52px; border-radius: 4px; background: linear-gradient(180deg, #4a4a52, #1e1e24); box-shadow: 0 4px 8px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.1); }
+.wd-body::after { content: ""; position: absolute; left: 50%; top: 14px; width: 26px; height: 26px; margin-left: -13px; border-radius: 50%; background: repeating-conic-gradient(#8a8a92 0 12deg, transparent 12deg 24deg); }
+.wd-arm { position: absolute; left: 50%; top: 8px; width: 4px; height: 40px; margin-left: -2px; background: #9a9aa2; transform: rotate(30deg); transform-origin: 50% 100%; }
+.wd-key { position: absolute; left: 50%; top: 2px; width: 22px; height: 8px; margin-left: 6px; border-radius: 4px; background: #d9b455; transform: rotate(30deg); }
+
+.handsdrawer { left: 200px; top: 516px; width: 120px; height: 40px; z-index: 6; }
+.hd-front { position: absolute; inset: 2px; border-radius: 2px; background: linear-gradient(180deg, #5a4020, #3a2814); box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,220,160,.12); transition: transform .5s; }
+.hd-front .hd-pull { position: absolute; left: 50%; top: 50%; width: 30px; height: 6px; margin: -3px 0 0 -15px; border-radius: 3px; background: linear-gradient(180deg, #e8c77c, #7a5a1c); }
+.hd-hands { position: absolute; left: 10px; right: 10px; top: -4px; height: 8px; background: repeating-linear-gradient(90deg, #1a1a1e 0 1px, transparent 1px 6px); opacity: 0; transition: opacity .4s; }
+.handsdrawer.is-done .hd-front { transform: translateY(6px); }
+.handsdrawer.is-done .hd-hands { opacity: .8; }
+
+.lc-thumb.t9 { background: linear-gradient(180deg, #4a3a28 60%, #2a1e12 60%); }
+.lc-thumb.t9::before { content: ""; position: absolute; left: 22%; top: 22%; width: 24%; aspect-ratio: 1; border-radius: 50%; background: repeating-conic-gradient(#d9b455 0 12deg, transparent 12deg 24deg); }
+.lc-thumb.t9::after { content: ""; position: absolute; left: 44%; top: 34%; width: 18%; aspect-ratio: 1; border-radius: 50%; background: repeating-conic-gradient(#d9b455 0 15deg, transparent 15deg 30deg); }
+
+@media (orientation: portrait) {
+  .level-9 .cm-wall { height: 790px; }
+  .level-9 .cm-floor { top: 902px; }
+  .trapdoor { left: 250px; top: 8px; }
+  .lp-lamp { left: 570px; height: 120px; }
+  .lp-lamp .lp-cord { height: 40px; }
+  .lp-lamp .lp-shade { top: 30px; }
+  .lp-lamp .lp-bulb { top: 76px; }
+  .lp-glow { left: 60px; top: 80px; width: 600px; height: 700px; }
+  .wallclocks { left: 40px; top: 150px; width: 640px; height: 200px; }
+  .cuckoo { left: 600px; top: 380px; }
+  .geartrain { left: 40px; top: 400px; }
+  .geartrain .gt-rod { top: -390px; height: 450px; }
+  .bench { left: 40px; top: 770px; }
+  .skeleton { left: 60px; top: 590px; }
+  .gtray { left: 240px; top: 724px; }
+  .winder { left: 570px; top: 680px; }
+  .pocketwatch { left: 580px; top: 748px; }
+  .loupe { left: 230px; top: 808px; }
+  .oilcan { left: 600px; top: 810px; }
+  .handsdrawer { left: 120px; top: 814px; }
+  .trapdoor .ld-ladder { height: 0; }
+  .trapdoor.is-open .ld-ladder { height: 800px; }
+}

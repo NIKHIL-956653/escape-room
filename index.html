@@ -950,6 +950,93 @@
             </button>
           </div>
 
+          <div class="level level-9" data-level="9">
+            <div class="cm-ceiling"><span class="cm-beam b1"></span><span class="cm-beam b2"></span><span class="cm-beam b3"></span></div>
+            <div class="cm-wall"><span class="cm-plaster"></span><span class="cm-shelf"></span></div>
+            <div class="cm-floor"><span class="cm-boards"></span></div>
+            <span class="lp-lamp"><i class="lp-cord"></i><i class="lp-shade"></i><i class="lp-bulb"></i></span>
+            <span class="lp-glow"></span>
+            <span class="cm-dust"></span>
+
+            <!-- THE TRAPDOOR — the exit, in the ceiling -->
+            <button class="obj door trapdoor" data-object="door" type="button" aria-label="A trapdoor in the ceiling">
+              <span class="th-frame">
+                <span class="th-dark"></span>
+                <span class="th-lid"><i class="th-planks"></i><i class="th-strap"></i></span>
+                <span class="th-bolt" data-bolt></span>
+              </span>
+              <span class="ld-ladder"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="obj-tag">Trapdoor</span>
+            </button>
+
+            <!-- THE GEAR TRAIN on the wall — the lock -->
+            <button class="obj geartrain" data-object="geartrain" type="button" aria-label="The gear train that drives the bolt">
+              <span class="gt-plate">
+                <span class="gt-rod"></span>
+                <span class="gt-rack"><i></i></span>
+                <span class="gt-crank"><i class="gt-teeth"></i><b class="gt-handle"></b></span>
+                <span class="gt-pegs" data-pegs></span>
+              </span>
+              <span class="obj-tag">Gear train</span>
+            </button>
+
+            <!-- ELEVEN STOPPED CLOCKS -->
+            <button class="obj wallclocks" data-object="clocks" type="button" aria-label="A wall of stopped clocks">
+              <span class="wk-row r1" data-clocks></span>
+              <span class="obj-tag">Clocks</span>
+            </button>
+
+            <!-- THE CUCKOO -->
+            <button class="obj cuckoo" data-object="cuckoo" type="button" aria-label="A cuckoo clock">
+              <span class="cu-house"><i class="cu-roof"></i><i class="cu-face"></i><i class="cu-door"></i><i class="cu-bird"></i></span>
+              <span class="cu-weights"><i></i><i></i></span>
+              <span class="obj-tag">Cuckoo</span>
+            </button>
+
+            <!-- THE BENCH -->
+            <div class="bench"><span class="bn-top"></span><span class="bn-front"></span><span class="bn-leg l"></span><span class="bn-leg r"></span></div>
+
+            <!-- THE SKELETON CLOCK under its dome — the model, still running -->
+            <button class="obj skeleton" data-object="skeleton" type="button" aria-label="A skeleton clock under a glass dome">
+              <span class="sk-base"></span>
+              <span class="sk-frame">
+                <span class="sk-train" data-sktrain></span>
+                <span class="sk-dial"><i class="sk-h"></i><i class="sk-m"></i></span>
+                <span class="sk-pend"><i></i></span>
+              </span>
+              <span class="sk-dome"></span>
+              <span class="obj-tag">Skeleton clock</span>
+            </button>
+
+            <!-- THE GEAR TRAY -->
+            <button class="obj gtray" data-object="tray" type="button" aria-label="A tray of loose gears">
+              <span class="gt-tray" data-tray></span>
+              <span class="obj-tag">Gear tray</span>
+            </button>
+
+            <!-- decoys -->
+            <button class="obj pocketwatch" data-object="watch" type="button" aria-label="A pocket watch">
+              <span class="pw-case"><i class="pw-face"></i><i class="pw-crown"></i></span><span class="pw-chain"></span>
+              <span class="obj-tag">Pocket watch</span>
+            </button>
+            <button class="obj loupe" data-object="loupe" type="button" aria-label="A jeweller's loupe">
+              <span class="lu-ring"></span><span class="lu-glass"></span>
+              <span class="obj-tag">Loupe</span>
+            </button>
+            <button class="obj oilcan" data-object="oilcan" type="button" aria-label="An oil can">
+              <span class="oc-body"></span><span class="oc-spout"></span><span class="oc-thumb"></span>
+              <span class="obj-tag">Oil can</span>
+            </button>
+            <button class="obj winder" data-object="winder" type="button" aria-label="A spring winder">
+              <span class="wd-body"></span><span class="wd-arm"></span><span class="wd-key"></span>
+              <span class="obj-tag">Winder</span>
+            </button>
+            <button class="obj handsdrawer" data-object="drawer" type="button" aria-label="The bench drawer">
+              <span class="hd-front"><i class="hd-pull"></i></span><span class="hd-hands"></span>
+              <span class="obj-tag">Drawer</span>
+            </button>
+          </div>
+
           <canvas class="particles" id="particles" aria-hidden="true"></canvas>
           <div class="vignette"></div>
           <div class="flash" id="flash"></div>
@@ -1210,6 +1297,26 @@
           </div>
         </div>
         <p class="modal-text" id="lockText">Twenty-four boxes, every one of them drilled last night. Most hold paper. One holds the bolt key.</p>
+      </div>
+    </template>
+
+    <template id="tplGeartrain">
+      <div class="chest-inspect">
+        <div class="gt-big" id="gtBig">
+          <div class="gt-wall">
+            <div class="gt-rod2"></div>
+            <div class="gt-rack2" id="gtRack"><i></i></div>
+            <div class="gt-crank2" id="gtCrank"></div>
+            <div class="gt-pegs2" id="gtPegs"></div>
+            <div class="gt-boltlabel">BOLT</div>
+          </div>
+          <div class="gt-traybig" id="gtTray"></div>
+        </div>
+        <div class="scope-bar">
+          <span class="sc-stn" id="gtHeld">NOTHING IN HAND</span>
+          <button type="button" class="btn btn-ghost" id="gtTurn">TURN THE CRANK</button>
+        </div>
+        <p class="modal-text" id="lockText">Tap a gear in the tray to pick it up, tap a peg to set it. Tap a set gear to take it back.</p>
       </div>
     </template>
 
