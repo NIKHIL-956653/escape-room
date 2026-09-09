@@ -132,6 +132,23 @@
         pulse.connect(pg); pg.connect(tg.gain);
         tk.connect(tg); tg.connect(out);
         [w, lfo, lfo2, tk, pulse].forEach((n) => { n.start(); nodes.push(n); });
+      } else if (kind === "scanner") {
+        // fluorescent hum, air handling, and a police scanner breathing static
+        const hum = c.createOscillator(); hum.type = "triangle"; hum.frequency.value = 100;
+        const hg = c.createGain(); hg.gain.value = 0.025;
+        hum.connect(hg); hg.connect(out);
+        const air = c.createBufferSource(); air.buffer = buffer(c); air.loop = true;
+        const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 260;
+        const ag = c.createGain(); ag.gain.value = 0.2;
+        air.connect(lp); lp.connect(ag); ag.connect(out);
+        const st = c.createBufferSource(); st.buffer = buffer(c); st.loop = true;
+        const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 2600; bp.Q.value = 5;
+        const sg = c.createGain(); sg.gain.value = 0.0;
+        const lfo = c.createOscillator(); lfo.type = "square"; lfo.frequency.value = 0.21;
+        const lg = c.createGain(); lg.gain.value = 0.018;
+        lfo.connect(lg); lg.connect(sg.gain);
+        st.connect(bp); bp.connect(sg); sg.connect(out);
+        [hum, air, st, lfo].forEach((n) => { n.start(); nodes.push(n); });
       }
       amb = { nodes, gain: out };
     }
@@ -212,6 +229,14 @@
         noise({ dur: 2.6, vol: 0.07, delay: 1.6, filter: 2200, type: "highpass", attack: 0.8 });
       },
       drawer() { noise({ dur: 0.36, vol: 0.12, filter: 1400, slideTo: 500, type: "bandpass", q: 2, attack: 0.05 }); tone({ freq: 480, type: "triangle", dur: 0.12, vol: 0.06, delay: 0.3 }); },
+      gate() { tone({ freq: 180, type: "square", dur: 0.16, vol: 0.14, filter: 900 }); noise({ dur: 0.5, vol: 0.16, delay: 0.1, filter: 2200, slideTo: 600, type: "bandpass", q: 4 }); tone({ freq: 60, type: "sine", dur: 0.9, vol: 0.22, delay: 0.12, slideTo: 42 }); },
+      powerDown() {
+        tone({ freq: 120, type: "sawtooth", dur: 1.6, vol: 0.12, slideTo: 24, filter: 600 });
+        noise({ dur: 1.4, vol: 0.1, filter: 900, slideTo: 120, q: 1.5, attack: 0.05 });
+        tone({ freq: 48, type: "sine", dur: 0.5, vol: 0.28, delay: 1.5, slideTo: 30 });
+        noise({ dur: 0.12, vol: 0.14, delay: 1.5, filter: 300, q: 2 });
+      },
+      radio() { [0, 0.14, 0.31].forEach((d, i) => noise({ dur: 0.08 + i * 0.03, vol: 0.05, delay: d, filter: 2400 + i * 600, type: "bandpass", q: 6 })); },
     };
   })();
 
@@ -396,6 +421,37 @@
       domeStart: 118,
       drawers: [2, 7, 4, 0, 10, 5, 8, 1, 3, 11, 6, 9],
     },
+    {
+      id: 8, name: "Plan B", sub: "Marble · steel · a voice in your ear",
+      clues: ["envelope", "diary", "calendar", "vault", "pageB", "tiles"],
+      clueTotal: 6,
+      clueText: {
+        envelope: "Clue found: Plan A — the vault. The combination is in the manager's head, and his head is in his diary.",
+        diary: "Clue found: the manager uses his daughter's birthday for the door.",
+        calendar: "Clue found: the manager draws on his calendar.",
+        vault: "Plan A has failed. There is a time lock behind the door.",
+        pageB: "Clue found: Plan B — the service grille, the bolt key, and something to count.",
+        tiles: "Clue found: two lines of dark tiles leave the vault. Only one goes to the desk.",
+      },
+      lock: "boxes", lockName: "The Deposit Boxes", answer: 10,
+      vaultCode: "1403",
+      exitHint: (s) => !s.keyObtained
+        ? "A steel grille over a service duct, bolted at four corners, and a small lamp lit on the frame — the maglock is holding."
+        : "The bolts come out. The grille does not move: the maglock on the frame is still live. He said they would cut the power. Wait for it.",
+      exitReady: (s) => s.keyObtained && s.powerCut,
+      hints: [
+        "Plan A: the manager's diary in the desk drawer says what he uses for the door, and the calendar says when that is. Day, then month.",
+        "When the door fails, read page two. The bolt key is in a deposit box — he tells you how to find which one.",
+        "Count the dark tiles between the vault and the DESK — not the other line. Then wait: the grille only opens once they have pulled the mains.",
+      ],
+      particles: { color: "255, 220, 200", rise: 0.8, size: 1.0 },
+      opener: "You are in. Nobody else is. The voice in your ear says: the envelope on the desk.",
+      intro: { line: "Everyone else went out the front. You were told to wait." },
+      failLine: "Boots in the corridor. The voice in your ear goes quiet.",
+      exitToast: "Four bolts. The grille comes away in your hands, and the duct breathes cold air at you.",
+      ambience: "scanner",
+      junkBoxes: [],
+    },
   ];
   const lvClueTotal = (lv) => lv.clueTotal || lv.clues.length;
 
@@ -451,6 +507,10 @@
     wheel: 0,
     dome: 0,
     domeOpen: false,
+    vaultOpen: false,
+    alarm: false,
+    powerCut: false,
+    junk: [],
     modal: null,
     busy: false,
   });
@@ -529,9 +589,10 @@
 
   // ---------------------------------------------------------------- toast
   let toastTimer = 0;
-  function toast(text, ms = 2400) {
+  function toast(text, ms = 2400, cls = "") {
     const t = $("toast");
     t.textContent = text;
+    t.classList.toggle("is-voice", cls === "is-voice");
     t.classList.add("is-visible");
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => t.classList.remove("is-visible"), ms);
@@ -1179,6 +1240,130 @@
         });
       },
     },
+    // ---------------- room 8 ----------------
+    8: {
+      envelope() {
+        markInvestigated("envelope");
+        openModal("envelope", "The Envelope", (body) => {
+          const env = document.createElement("div");
+          env.className = "env-big" + (state.alarm ? " is-b" : "");
+          env.innerHTML = `
+            <div class="env-page a"><b>PLAN A</b>
+              <p>The vault. The manager keeps the combination in his head, and his head in his diary — desk drawer, left side. Four wheels: <em>day, then month</em>. He is a sentimental man. Use that.</p>
+              <p>Bag on the floor is ours. Leave it. Nothing in it we cannot get again.</p>
+            </div>
+            <div class="env-page b"><b>PLAN B</b><i class="env-wax"></i>
+              <p>If you are reading this, the door said no. I knew it might: there is a time lock behind it that nobody at the branch told me about, and I do not like being told nothing.</p>
+              <p>They will not cut the vault open — they will freeze it. Mains off, from the street. When the mains go, the maglock on the <em>service grille</em> by the floor dies with them. The grille is bolted. The bolt key is in one of the boxes we drilled.</p>
+              <p>Which box: from the vault door there are two lines of dark tiles in the floor. Follow the one that ends at the <em>desk</em>, and count the tiles. I counted them that morning, twice. Now you count them.</p>
+            </div>`;
+          body.appendChild(env);
+          if (!state.alarm) {
+            body.appendChild(p("Two pages. The second is folded shut under a blob of wax, and in his hand across the fold: <em>NOT UNTIL THE DOOR SAYS NO.</em>"));
+            body.appendChild(p("You could break the wax. He would know.", "modal-dud"));
+            discover("envelope");
+            return;
+          }
+          body.appendChild(p("The wax cracks under your thumb. Page two was written before any of this, in the same steady hand."));
+          body.appendChild(p("Two lines of tiles. The one to the desk. Count.", "modal-clue"));
+          discover("envelope");
+          discover("pageB");
+          objEl("envelope").classList.add("is-read");
+        });
+      },
+      diary() {
+        markInvestigated("diary");
+        openModal("diary", "The Desk Drawer", (body) => {
+          const d = document.createElement("div");
+          d.className = "diary-big";
+          d.innerHTML = `<div class="dy-page"><span class="dy-date">Tuesday</span>
+            <p>Ana's birthday again. Cake at the office — the girls sang, I stood there like a post. Nine. Nine already.</p>
+            <p>I have started using it for the door. Ashamed how long I forgot my own daughter's birthday, so now the door makes me remember it every morning: day and month, the way she writes it on her drawings.</p>
+            <p class="dy-faint">Car in for its service Thursday. Ring the insurers about the thing on the 22nd.</p></div>`;
+          body.appendChild(d);
+          body.appendChild(p("A pocket diary, this year's, most pages blank. One entry is written all the way down the page."));
+          body.appendChild(p("Her birthday. No date written — he does not need one. He has a calendar for that.", "modal-clue"));
+          discover("diary");
+        });
+      },
+      calendar() {
+        markInvestigated("calendar");
+        openModal("calendar", "The Calendar", (body) => {
+          const c = document.createElement("div");
+          c.className = "cal-big";
+          c.innerHTML = '<div class="cal-sheet"><b class="cal-month">MARCH</b><span class="cal-grid" id="calBig"></span></div>';
+          body.appendChild(c);
+          renderCalendar(c.querySelector("#calBig"), true);
+          body.appendChild(p("A bank calendar, one month to a page, and the manager draws on it instead of writing. A car. A cake. A cross. A telephone."));
+          body.appendChild(p("A man who draws a cake on a day has a reason.", "modal-clue"));
+          discover("calendar");
+        });
+      },
+      vault() {
+        markInvestigated("vault");
+        openVault();
+      },
+      tiles() {
+        markInvestigated("tiles");
+        openModal("tiles", "The Floor", (body) => {
+          body.appendChild(zoomClone("tiles", "is-plan"));
+          body.appendChild(p("Marble, laid in squares, and set into it two lines of darker stone that both start at the vault's threshold. One runs left, to the deposit boxes. One runs right, to the desk."));
+          body.appendChild(p(state.alarm ? "He said: the one that ends at the desk. Count them." : "Decorative, probably. Somebody paid for it.", state.alarm ? "modal-clue" : "modal-dud"));
+          if (state.alarm) discover("tiles");
+        });
+      },
+      cctv() {
+        markInvestigated("cctv");
+        openModal("cctv", "The Monitors", (body) => {
+          body.appendChild(zoomClone("cctv"));
+          if (state.powerCut) { body.appendChild(p("Three black screens. The scanner underneath is on its own battery, hissing.")); body.appendChild(p("Nothing to see. Everything to hear.", "modal-dud")); return; }
+          if (state.alarm) { body.appendChild(p("Corridor, corridor, front steps. The front steps have lights on them now, blue and white, and a shape getting out of a car.")); body.appendChild(p("They are here. He said they would be.", "modal-dud")); return; }
+          body.appendChild(p("Three feeds: the corridor, the corridor from the other end, the front steps. Nothing moves in any of them. The scanner under the desk is turned low, muttering to itself about a stolen bicycle."));
+          body.appendChild(p("Quiet. For now.", "modal-dud"));
+        });
+      },
+      // --- decoys ---------------------------------------------------------
+      phone() {
+        markInvestigated("phone");
+        openModal("phone", "The Telephone", (body) => {
+          body.appendChild(zoomClone("phone"));
+          body.appendChild(p("A desk phone with a line of speed-dial buttons, every label worn blank. You lift the handset. Dial tone."));
+          body.appendChild(p("Who would you call.", "modal-dud"));
+        });
+      },
+      mug() {
+        markInvestigated("mug");
+        openModal("mug", "The Mug", (body) => {
+          body.appendChild(zoomClone("mug"));
+          body.appendChild(p("Half a coffee, cold, with a skin on it. WORLD'S OKAYEST MANAGER, in letters that have been through the dishwasher too often."));
+          body.appendChild(p("Nothing under it. You check.", "modal-dud"));
+        });
+      },
+      coat() {
+        markInvestigated("coat");
+        openModal("coat", "The Coat", (body) => {
+          body.appendChild(zoomClone("coat"));
+          body.appendChild(p("The manager's overcoat on a stand. Wallet in the inside pocket: a staff pass with a six-digit number, a photo of a small girl with a paper crown, forty in notes."));
+          body.appendChild(p("You put the wallet back. The girl in the crown is the only thing in it that matters, and she is not a number.", "modal-dud"));
+        });
+      },
+      bag() {
+        markInvestigated("bag");
+        openModal("bag", "The Duffel Bag", (body) => {
+          body.appendChild(zoomClone("bag"));
+          body.appendChild(p("Ours. Drill bits, a coil of cable, gloves, and under all that, bundles of paper that were somebody's tomorrow. He said to leave it."));
+          body.appendChild(p("You leave it.", "modal-dud"));
+        });
+      },
+      extinguisher() {
+        markInvestigated("extinguisher");
+        openModal("extinguisher", "The Extinguisher", (body) => {
+          body.appendChild(zoomClone("extinguisher"));
+          body.appendChild(p("Red cylinder, inspection tag punched last spring. Full. You could knock a man over with it."));
+          body.appendChild(p("There is nobody to knock over. Yet.", "modal-dud"));
+        });
+      },
+    },
   };
 
   // ---------------------------------------------------------------- locks
@@ -1193,6 +1378,7 @@
       else if (lv.lock === "padlock") buildPadlock(body);
       else if (lv.lock === "gridsafe") buildBankSafe(body);
       else if (lv.lock === "cabinet") buildCabinet(body);
+      else if (lv.lock === "boxes") buildBoxes(body);
       else buildValves(body);
     });
   }
@@ -1282,7 +1468,7 @@
       if (dial) { state.slot = +dial.dataset.slot; renderWord(); }
     });
   }
-  const isDigits = () => level().lock === "suitcase" || level().lock === "padlock";
+  const isDigits = () => level().lock === "suitcase" || level().lock === "padlock" || state.modal === "vault";
   const wheel = () => (isDigits() ? state.dials : state.word);
   function renderWord() {
     const wl = $("wordlock");
@@ -1294,7 +1480,7 @@
     });
   }
   function rollDial(slot, dir) {
-    if (state.lockOpen || state.busy) return;
+    if ((state.modal === "vault" ? state.vaultOpen : state.lockOpen) || state.busy) return;
     if (isDigits()) state.dials[slot] = (state.dials[slot] + dir + 10) % 10;
     else { const i = LETTERS.indexOf(state.word[slot]); state.word[slot] = LETTERS[(i + dir + 26) % 26]; }
     sfx.dial();
@@ -1787,6 +1973,165 @@
     lockFailed(() => { el.classList.remove("is-stuck"); void el.offsetWidth; el.classList.add("is-stuck"); });
   }
 
+  /* ---------- room 8: the plan, and the plan behind it ---------- */
+  const VOICE_MS = 4600;
+  function voice(text, ms = VOICE_MS) { toast("“" + text + "”", ms, "is-voice"); }
+  const CAL_MARKS = { 3: "car", 14: "cake", 22: "cross", 27: "phone" };
+  const DOODLE = {
+    cake: '<svg viewBox="0 0 24 24"><path d="M5 12h14v8H5z"/><path d="M4 12c2 0 2 2 4 2s2-2 4-2 2 2 4 2 2-2 4-2" fill="none"/><path d="M9 12V8M12 12V7M15 12V8" fill="none"/><path d="M9 6c0 1 1 1 1 0s-1-2-1-1zM12 5c0 1 1 1 1 0s-1-2-1-1zM15 6c0 1 1 1 1 0s-1-2-1-1z"/></svg>',
+    car: '<svg viewBox="0 0 24 24"><path d="M3 15l2-5h14l2 5v3H3z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/><path d="M7 10l1.5-3h7L17 10" fill="none"/></svg>',
+    cross: '<svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19" fill="none"/></svg>',
+    phone: '<svg viewBox="0 0 24 24"><path d="M6 4h5l2 5-2.5 1.5a11 11 0 005 5L17 13l5 2v5c-9 1-17-7-16-16z"/></svg>',
+  };
+  function renderCalendar(host, big) {
+    if (!host) return;
+    host.innerHTML = "";
+    ["S", "M", "T", "W", "T", "F", "S"].forEach((d) => { const h = document.createElement("i"); h.className = "cal-h"; h.textContent = d; host.appendChild(h); });
+    for (let i = 0; i < 31 + 0; i++) {
+      const c = document.createElement("i");
+      c.className = "cal-d";
+      const day = i + 1;
+      c.innerHTML = `<b>${day}</b>` + (CAL_MARKS[day] ? `<span class="cal-doodle ${CAL_MARKS[day]}">${DOODLE[CAL_MARKS[day]]}</span>` : "");
+      host.appendChild(c);
+    }
+  }
+  function renderBoxes(host, big) {
+    if (!host) return;
+    host.innerHTML = "";
+    for (let i = 0; i < 24; i++) {
+      const b = document.createElement(big ? "button" : "span");
+      b.className = "bx";
+      b.dataset.bx = i;
+      if (big) { b.type = "button"; b.setAttribute("aria-label", "Box " + (i + 1)); }
+      b.innerHTML = `<span class="bx-door"><i class="bx-no">${i + 1}</i><i class="bx-hole"></i><i class="bx-hole k"></i></span><span class="bx-in"><i class="bx-junk"></i></span>`;
+      host.appendChild(b);
+    }
+  }
+
+  // ---- the vault (plan A)
+  function openVault() {
+    if (state.vaultOpen) {
+      openModal("vault", "The Vault", (body) => {
+        body.appendChild($("tplVault").content.cloneNode(true));
+        const big = $("vaultBig");
+        big.classList.add("is-open", "is-gate");
+        big.querySelector(".vb-door").style.transition = "none";
+        $("vaultSubmit").disabled = true;
+        $("vaultText").textContent = "The door stands open on a gate that does not. Bars to the ceiling, and a display that is counting down to eight in the morning.";
+      });
+      lastFocus = null;
+      objEl("vault").blur();
+      return;
+    }
+    openModal("vault", "The Vault", (body) => {
+      body.appendChild($("tplVault").content.cloneNode(true));
+      wireDials(body, "digits");
+      $("vaultSubmit").addEventListener("click", submitVault);
+      renderWord();
+    });
+  }
+  function submitVault() {
+    if (state.vaultOpen || state.busy) return;
+    state.attempts++;
+    if (state.dials.join("") === level().vaultCode) return vaultFail();
+    state.wrongAttempts++;
+    sfx.wrong();
+    const wl = $("wordlock");
+    wl.classList.add("is-error"); nudge("#wordlock");
+    screens.room.classList.add("is-shaking");
+    setTimeout(() => screens.room.classList.remove("is-shaking"), 500);
+    const msgs = ["The handle turns a quarter and stops dead.", "Nothing. The wheels roll back to zero.", "Wrong. He said the manager's head — you are guessing.", "Still shut."];
+    $("vaultText").textContent = msgs[Math.min(msgs.length - 1, state.wrongAttempts - 1)];
+    setTimeout(() => { wl.classList.remove("is-error"); state.dials = [0, 0, 0, 0]; state.slot = 0; renderWord(); }, 800);
+  }
+  async function vaultFail() {
+    state.vaultOpen = true;
+    state.busy = true;
+    sfx.correct();
+    const big = $("vaultBig"), txt = $("vaultText");
+    const room = objEl("vault");
+    if (txt) txt.textContent = "The wheels seat. The handle goes all the way round, and a ton of steel starts to move…";
+    $("vaultSubmit").disabled = true;
+    big.classList.add("is-vibrating");
+    await wait(700);
+    big.classList.remove("is-vibrating");
+    sfx.safeOpen();
+    big.classList.add("is-open");
+    room.classList.add("is-open");
+    screens.room.classList.add("is-rumbling");
+    await wait(2000);
+    screens.room.classList.remove("is-rumbling");
+    sfx.gate();
+    big.classList.add("is-gate");
+    room.classList.add("is-gate");
+    // Chromium refuses to paint the swung door while its button holds focus: let focus go elsewhere
+    lastFocus = null;
+    room.blur();
+    if (txt) txt.textContent = "Behind the door: a second gate, bars floor to ceiling, and a small display counting down to eight in the morning. A time lock. The door was never the door.";
+    discover("vault");
+    await wait(1200);
+    // the silent alarm is not silent in here
+    state.alarm = true;
+    levelEl().classList.add("is-alarm");
+    sfx.alarm();
+    setScanner("SILENT ALARM · CENTRAL BRANCH · UNITS RESPONDING");
+    await wait(900);
+    voice("That's the door saying no. I said it might. Page two, now.", 5200);
+    state.busy = false;
+    ambTimers.push(setTimeout(() => setScanner("UNIT 4 · TWO MINUTES OUT"), 9000));
+    ambTimers.push(setTimeout(() => voice("They won't cut the vault open. They'll freeze it — mains off. Be ready."), 14000));
+    ambTimers.push(setTimeout(() => setScanner("CENTRAL — ISOLATE THE MAINS. HOLD THE PERIMETER."), 22000));
+    ambTimers.push(setTimeout(powerCutNow, 27000));
+  }
+  function setScanner(text) {
+    document.querySelectorAll("[data-scanner]").forEach((el) => { el.textContent = text; });
+  }
+  function powerCutNow() {
+    if (state.powerCut || state.levelId !== 8 || state.screen !== "room" || state.completed || state.gameOver) return;
+    state.powerCut = true;
+    sfx.powerDown();
+    const lv = levelEl();
+    lv.classList.add("is-dark");
+    setScanner("— MAINS DOWN — BATTERY —");
+    objEl("door").classList.add("is-dead");
+    toast("The lights die. A fan somewhere spins down. On the grille by the floor, the little lamp goes out.", 4200);
+    ambTimers.push(setTimeout(() => voice("There. Now they are outside a locked building, and you are not."), 4600));
+  }
+
+  // ---- the boxes (plan B — the real lock)
+  function buildBoxes(body) {
+    body.appendChild($("tplBoxes").content.cloneNode(true));
+    const grid = $("bbGrid");
+    renderBoxes(grid, true);
+    const big = $("boxesBig");
+    state.junk.forEach((i) => { const b = grid.querySelector(`[data-bx="${i}"]`); if (b) b.classList.add("is-open", "is-junk"); });
+    if (state.lockOpen) {
+      big.classList.add("is-open");
+      const b = grid.querySelector(`[data-bx="${level().answer}"]`);
+      if (b) b.classList.add("is-open", "is-key");
+      $("lockText").textContent = state.keyObtained ? "The right box stands open and empty." : "One box stands open with something heavier than paper in it.";
+      if (state.keyObtained) { $("theKey").classList.add("is-taken"); $("safeEmptyText").hidden = false; }
+    }
+    grid.addEventListener("click", (e) => {
+      const b = e.target.closest(".bx");
+      if (b) openBox(+b.dataset.bx, b);
+    });
+    wireKey();
+  }
+  function openBox(i, el) {
+    if (state.lockOpen || state.busy) return;
+    if (state.junk.includes(i)) { sfx.click(); $("lockText").textContent = "Paper. You already looked."; return; }
+    state.attempts++;
+    if (i === level().answer) return solveLock();
+    state.junk.push(i);
+    const room = objEl("boxes").querySelector(`[data-bx="${i}"]`);
+    if (room) room.classList.add("is-open", "is-junk");
+    sfx.drawer();
+    el.classList.add("is-open", "is-junk");
+    lockFailed(() => { nudge("#boxesBig"); });
+    if (state.wrongAttempts === 2) ambTimers.push(setTimeout(() => voice("Stop guessing. I did not leave you a guess. Go and count."), 900));
+  }
+
   /* ---------- shared lock behaviour ---------- */
   function nudge(sel) {
     const el = document.querySelector(sel);
@@ -1807,6 +2152,7 @@
       padlock: ["The shackle does not move.", "Solid. The wheels roll back to zero.", "Wrong number. The brass does not care.", "Still shut."],
       gridsafe: ["The handle will not throw.", "Nothing. The bolts stay out.", "Wrong reference — the dials spin back.", "Still locked."],
       cabinet: ["The drawer does not budge.", "Locked. The knob turns in your hand and nothing follows it.", "Not that one. The brass does not care how sure you were.", "Still shut."],
+      boxes: ["Paper. Bonds, deeds, somebody's will. Not a key.", "More paper. He said count, not guess.", "Paper again. Two lines of tiles leave that door — you want the one that ends at the desk.", "Paper."],
     }[level().lock];
     const t = $("lockText");
     if (t) t.textContent = msgs[Math.min(msgs.length - 1, state.wrongAttempts - 1)] + (state.wrongAttempts >= 3 ? " The room has already told you the answer." : "");
@@ -1910,6 +2256,23 @@
       await wait(1100);
       txt.textContent = "Green baize, a lens in a paper sleeve, and beside it — a key. Take it.";
       toast("The drawer is open.");
+    } else if (kind === "boxes") {
+      const big = $("boxesBig");
+      const b = big.querySelector(`[data-bx="${level().answer}"]`);
+      txt.textContent = "This one is heavier. The door swings on the drilled hinge…";
+      if (b) b.classList.add("is-vibrating");
+      await wait(500);
+      sfx.drawer();
+      if (b) { b.classList.remove("is-vibrating"); b.classList.add("is-open", "is-key"); }
+      const room = objEl("boxes").querySelector(`[data-bx="${level().answer}"]`);
+      if (room) room.classList.add("is-open", "is-key");
+      objEl("boxes").classList.add("is-open");
+      await wait(600);
+      big.classList.add("is-open");
+      sfx.chestOpen();
+      await wait(1000);
+      txt.textContent = "Felt, and on it a short iron key with a square bit. Bolt key. Take it.";
+      toast("The right box.");
     } else {
       const wall = $("valveWall");
       txt.textContent = "Somewhere behind the wall, water starts to move…";
@@ -2101,7 +2464,7 @@
 
     const slot = $("invSlot");
     slot.innerHTML = "";
-    const tpl = { safe: "tplSafe", chest: "tplChest", pipes: "tplValves", suitcase: "tplSuitcase", gridsafe: "tplBankSafe", cabinet: "tplCabinet" }[level().lock];
+    const tpl = { safe: "tplSafe", chest: "tplChest", pipes: "tplValves", suitcase: "tplSuitcase", gridsafe: "tplBankSafe", cabinet: "tplCabinet", boxes: "tplBoxes" }[level().lock];
     if (!tpl) return;
     const k = $(tpl).content.querySelector(".key, .card").cloneNode(true);
     k.removeAttribute("id"); k.removeAttribute("tabindex"); k.removeAttribute("role"); k.removeAttribute("aria-label");
@@ -2120,7 +2483,8 @@
     if (!ready) {
       sfx.locked();
       door.classList.remove("is-rattling"); void door.offsetWidth; door.classList.add("is-rattling");
-      toast(state.lockOpen ? level().exitHint.half : level().exitHint.locked);
+      const eh = level().exitHint;
+      toast(typeof eh === "function" ? eh(state) : (state.lockOpen ? eh.half : eh.locked), 3600);
       return;
     }
     if (state.doorUnlocked) return;
@@ -2129,7 +2493,7 @@
     stopTimer();
     door.classList.add("is-unlocked");
     sfx.doorOpen();
-    toast("The key turns…");
+    toast(level().exitToast || "The key turns…");
     await wait(700);
     door.classList.add("is-open");
     screens.room.classList.add("is-rumbling");
@@ -2227,6 +2591,16 @@
     stopAmbient();
     const lv = level();
     if (lv.ambience) sfx.ambience.start(lv.ambience);
+    if (lv.id === 8) {
+      const crackle = () => {
+        if (state.levelId !== 8 || state.screen !== "room") return;
+        sfx.radio();
+        ambTimers.push(setTimeout(crackle, rnd(6000, 14000)));
+      };
+      ambTimers.push(setTimeout(crackle, 2500));
+      ambTimers.push(setTimeout(() => { if (!state.alarm) voice("Envelope. Desk. Plan A first — always the plan first."); }, 5200));
+      return;
+    }
     if (lv.id !== 4) return;
     const storm = () => {
       if (state.levelId !== 4 || state.screen !== "room") return;
@@ -2284,6 +2658,16 @@
       renderChart(el.querySelector("[data-chartmini]"));
       state.wheel = 0;
       syncDome();
+    }
+    document.querySelectorAll(".level").forEach((l) => l.classList.remove("is-alarm", "is-dark", "is-gate"));
+    document.querySelectorAll(".obj").forEach((el) => el.classList.remove("is-gate", "is-dead", "is-read"));
+    document.querySelectorAll(".bx").forEach((el) => el.classList.remove("is-open", "is-junk", "is-key"));
+    $("toast").classList.remove("is-voice");
+    if (lv.id === 8) {
+      const el = document.querySelector(".level-8");
+      renderBoxes(el.querySelector("[data-boxes]"), false);
+      renderCalendar(el.querySelector("[data-cal]"), false);
+      setScanner("SCANNER · CH 3 · QUIET");
     }
     document.querySelectorAll(".bp-sw").forEach((el) => el.classList.remove("on"));
     document.querySelectorAll(".scope").forEach((el) => { el.style.removeProperty("--brg"); el.style.removeProperty("--sx"); el.style.removeProperty("--sy"); });
@@ -2369,6 +2753,16 @@
       return;
     }
     if (state.modal === "brake") { if (e.key === "Enter") { e.preventDefault(); pullBrake(); } return; }
+    if (state.modal === "vault") {
+      if (/^\d$/.test(e.key)) { e.preventDefault(); typeChar(e.key); }
+      else if (e.key === "Enter") { e.preventDefault(); submitVault(); }
+      else if (e.key === "Backspace") { e.preventDefault(); state.slot = Math.max(0, state.slot - 1); state.dials[state.slot] = 0; renderWord(); sfx.dial(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); rollDial(state.slot, 1); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); rollDial(state.slot, -1); }
+      else if (e.key === "ArrowLeft") { e.preventDefault(); state.slot = Math.max(0, state.slot - 1); renderWord(); }
+      else if (e.key === "ArrowRight") { e.preventDefault(); state.slot = Math.min(3, state.slot + 1); renderWord(); }
+      return;
+    }
     if (state.modal !== "lock") return;
     const kind = level().lock;
     if (kind === "safe") {

@@ -850,6 +850,106 @@
             </button>
           </div>
 
+          <div class="level level-8" data-level="8">
+            <div class="vt-wall"><span class="vt-marble"></span><span class="vt-cornice"></span><span class="vt-skirt"></span></div>
+            <div class="vt-floor">
+              <span class="vt-tiles"></span>
+              <span class="vt-sheen"></span>
+            </div>
+            <!-- the two lines of dark tiles, from the vault threshold: left to the boxes, right to the desk -->
+            <button class="obj tilepath" data-object="tiles" type="button" aria-label="The floor between the vault and the desk">
+              <span class="tp-line l"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="tp-line r"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+              <span class="tp-vault"></span><span class="tp-desk"></span>
+              <span class="obj-tag">The floor</span>
+            </button>
+            <span class="svc-lamp"><i class="svc-cage"></i><i class="svc-bulb"></i></span>
+            <span class="svc-glow"></span>
+            <span class="em-lamp"><i></i></span>
+            <span class="vt-night"></span>
+            <span class="vt-strobe"></span>
+            <span class="vt-dark"></span>
+
+            <!-- the corridor window: strobes, then torches -->
+            <div class="fwin"><span class="fw-glass"></span><span class="fw-beam b1"></span><span class="fw-beam b2"></span><span class="fw-bars"></span></div>
+
+            <!-- THE VAULT — plan A -->
+            <button class="obj vault" data-object="vault" type="button" aria-label="The vault door">
+              <span class="vt-frame">
+                <span class="vt-opening">
+                  <span class="vt-gate"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                  <span class="vt-tlk"><b>TIME LOCK</b><em data-tlk>08:00</em></span>
+                </span>
+                <span class="vt-door">
+                  <span class="vt-ring"></span>
+                  <span class="vt-spokes"><i></i><i></i><i></i></span>
+                  <span class="vt-hub"></span>
+                  <span class="vt-plate">DD · MM</span>
+                  <span class="vt-bolts"></span>
+                </span>
+                <span class="vt-hinge h1"></span><span class="vt-hinge h2"></span>
+              </span>
+              <span class="obj-tag">The vault</span>
+            </button>
+
+            <!-- DEPOSIT BOXES — plan B -->
+            <button class="obj boxwall" data-object="boxes" type="button" aria-label="The safe-deposit boxes">
+              <span class="bx-frame"><span class="bx-grid" data-boxes></span><span class="bx-plate">SAFE DEPOSIT · 1–24</span></span>
+              <span class="obj-tag">Deposit boxes</span>
+            </button>
+
+            <!-- SERVICE GRILLE — the way out, low on the left -->
+            <button class="obj door grille" data-object="door" type="button" aria-label="A service grille">
+              <span class="grl-duct"></span>
+              <span class="grl-panel"><span class="grl-slats"></span><span class="grl-bolt b1"></span><span class="grl-bolt b2"></span><span class="grl-bolt b3"></span><span class="grl-bolt b4"></span></span>
+              <span class="grl-mag"><i data-mag></i></span>
+              <span class="obj-tag">Service grille</span>
+            </button>
+
+            <!-- SECURITY DESK -->
+            <div class="sdesk"><span class="sd-top"></span><span class="sd-front"><span class="sd-drawer"></span></span><span class="sd-leg"></span></div>
+            <button class="obj drawer" data-object="diary" type="button" aria-label="The desk drawer">
+              <span class="dr-front"><i class="dr-pull"></i></span>
+              <span class="dr-book"></span>
+              <span class="obj-tag">Drawer</span>
+            </button>
+            <button class="obj envelope" data-object="envelope" type="button" aria-label="An envelope">
+              <span class="env-paper"><i class="env-flap"></i><i class="env-seal"></i><i class="env-line"></i></span>
+              <span class="obj-tag">Envelope</span>
+            </button>
+            <button class="obj cctv" data-object="cctv" type="button" aria-label="The security monitors">
+              <span class="cc-mon m1"><i class="cc-scr"></i></span><span class="cc-mon m2"><i class="cc-scr"></i></span><span class="cc-mon m3"><i class="cc-scr"></i></span>
+              <span class="cc-scan" data-scanner>SCANNER · IDLE</span>
+              <span class="obj-tag">Monitors</span>
+            </button>
+            <button class="obj calendar" data-object="calendar" type="button" aria-label="A wall calendar">
+              <span class="cal-sheet"><b class="cal-month">MARCH</b><span class="cal-grid" data-cal></span></span>
+              <span class="obj-tag">Calendar</span>
+            </button>
+            <button class="obj deskphone" data-object="phone" type="button" aria-label="A telephone">
+              <span class="ph-base"></span><span class="ph-handset"></span><span class="ph-keys"></span>
+              <span class="obj-tag">Telephone</span>
+            </button>
+            <button class="obj mug" data-object="mug" type="button" aria-label="A coffee mug">
+              <span class="mug-body"></span><span class="mug-handle"></span><span class="mug-steam"></span>
+              <span class="obj-tag">Mug</span>
+            </button>
+
+            <!-- decoys -->
+            <button class="obj coatstand" data-object="coat" type="button" aria-label="A coat on a stand">
+              <span class="ct-pole"></span><span class="ct-hook"></span><span class="ct-coat"></span><span class="ct-base"></span>
+              <span class="obj-tag">Coat</span>
+            </button>
+            <button class="obj duffel" data-object="bag" type="button" aria-label="A duffel bag">
+              <span class="df-bag"><i class="df-zip"></i><i class="df-strap"></i></span><span class="df-bundle"></span>
+              <span class="obj-tag">Duffel bag</span>
+            </button>
+            <button class="obj extinguisher" data-object="extinguisher" type="button" aria-label="A fire extinguisher">
+              <span class="fe-tank"></span><span class="fe-neck"></span><span class="fe-hose"></span><span class="fe-label"></span>
+              <span class="obj-tag">Extinguisher</span>
+            </button>
+          </div>
+
           <canvas class="particles" id="particles" aria-hidden="true"></canvas>
           <div class="vignette"></div>
           <div class="flash" id="flash"></div>
@@ -1073,6 +1173,43 @@
           </div>
         </div>
         <p class="modal-text" id="lockText">Twelve brass drawers, each engraved with a pattern of stars. Only one of them will pull.</p>
+      </div>
+    </template>
+
+    <template id="tplVault">
+      <div class="chest-inspect">
+        <div class="vault-big" id="vaultBig">
+          <div class="vb-door">
+            <div class="vb-ring"></div>
+            <div class="vb-plate">DAY · MONTH</div>
+            <div class="wordlock numlock" id="wordlock">
+              <div class="dial" data-slot="0"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="1"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="2"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+              <div class="dial" data-slot="3"><button type="button" class="d-up" data-dir="1" aria-label="up">▲</button><span class="d-letter">0</span><button type="button" class="d-down" data-dir="-1" aria-label="down">▼</button></div>
+            </div>
+            <div class="vb-handle"></div>
+          </div>
+          <div class="vb-gate"><span class="vb-bars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="vb-tlk"><b>TIME LOCK</b><em>OPENS 08:00</em></span></div>
+        </div>
+        <button type="button" class="btn btn-ghost lock-submit" id="vaultSubmit">SPIN THE HANDLE</button>
+        <p class="modal-text" id="vaultText">Four wheels on a steel plate. Day, then month — it says so on the plate.</p>
+      </div>
+    </template>
+
+    <template id="tplBoxes">
+      <div class="chest-inspect">
+        <div class="boxes-big" id="boxesBig">
+          <div class="bb-grid" id="bbGrid"></div>
+          <div class="bb-tray" id="bbTray">
+            <div class="key iron" id="theKey" role="button" tabindex="0" aria-label="Take the bolt key">
+              <span class="key-bow"><span></span></span><span class="key-shaft"></span>
+              <span class="key-tooth t1"></span><span class="key-tooth t2"></span><span class="key-shine"></span>
+            </div>
+            <div class="safe-empty-text" id="safeEmptyText" hidden>Empty now. A shape in the felt where the key was.</div>
+          </div>
+        </div>
+        <p class="modal-text" id="lockText">Twenty-four boxes, every one of them drilled last night. Most hold paper. One holds the bolt key.</p>
       </div>
     </template>
 
