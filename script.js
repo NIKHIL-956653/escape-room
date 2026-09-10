@@ -21,6 +21,8 @@
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const rnd = (a, b) => a + Math.random() * (b - a);
   const TOTAL_TIME = 5 * 60;
+  // TEST MODE — every room unlocked, no countdown. Set to false for release.
+  const TEST_MODE = true;
   const HINT_TOTAL = 3;
 
   // ---------------------------------------------------------------- audio
@@ -506,8 +508,8 @@
   const loadProgress = () => {
     try {
       const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || "{}");
-      return { unlocked: clamp(raw.unlocked || 1, 1, LEVELS.length), stars: raw.stars || {} };
-    } catch { return { unlocked: 1, stars: {} }; }
+      return { unlocked: TEST_MODE ? LEVELS.length : clamp(raw.unlocked || 1, 1, LEVELS.length), stars: raw.stars || {} };
+    } catch { return { unlocked: TEST_MODE ? LEVELS.length : 1, stars: {} }; }
   };
   const saveProgress = () => { try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch { /* private mode */ } };
   let progress = loadProgress();
@@ -722,6 +724,7 @@
     state.endAt = Date.now() + TOTAL_TIME * 1000;
     state.timeLeft = TOTAL_TIME;
     renderTimer();
+    if (TEST_MODE) { timerText.textContent = "TEST"; return; }
     state.timerId = setInterval(() => {
       const left = Math.max(0, Math.ceil((state.endAt - Date.now()) / 1000));
       if (left === state.timeLeft) return;
